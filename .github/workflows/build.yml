@@ -6,6 +6,7 @@ on:
     paths:
       - 'orchestrator/**'
       - '.github/workflows/build.yml'
+  workflow_dispatch:  # allows manual trigger from GitHub UI
 
 env:
   REGISTRY: ghcr.io
@@ -44,6 +45,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          no-cache: true
 
       - name: Trigger Portainer redeploy
         run: |
