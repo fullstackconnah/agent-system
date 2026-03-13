@@ -1,0 +1,84 @@
+# NPM + Cloudflare Tunnel Config
+# agents.connah.com.au → orchestrator:3000
+
+# ============================================================
+# STEP 1: Nginx Proxy Manager
+# ============================================================
+# Add a new Proxy Host with these settings:
+#
+#   Domain Names:       agents.connah.com.au
+#   Scheme:             http
+#   Forward Hostname:   agent-orchestrator   (Docker container name)
+#   Forward Port:       3000
+#   Cache Assets:       off
+#   Block Common Exploits: on
+#
+# SSL Tab:
+#   SSL Certificate:    Request a new certificate (Let's Encrypt)
+#   Force SSL:          on
+#   HTTP/2 Support:     on
+#
+# Advanced Tab → Custom Nginx Config (paste this):
+#
+#   # Basic auth to protect the orchestrator
+#   auth_basic "Agent System";
+#   auth_basic_user_file /data/nginx/htpasswd/agents;
+#
+#   # Longer timeout for agent runs
+#   proxy_read_timeout 300s;
+#   proxy_send_timeout 300s;
+
+# ============================================================
+# STEP 2: Create htpasswd file on your server
+# ============================================================
+# SSH into server and run:
+#
+#   sudo apt-get install -y apache2-utils
+#   sudo mkdir -p /path/to/npm/data/nginx/htpasswd
+#   sudo htpasswd -c /path/to/npm/data/nginx/htpasswd/agents connah
+#   # Enter a password when prompted
+#
+# Note: /path/to/npm/data is wherever your NPM data volume is mounted,
+# typically /home/connah/docker/npm/data or similar.
+
+# ============================================================
+# STEP 3: Cloudflare Tunnel
+# ============================================================
+# In your existing tunnel config.yml, add this ingress rule
+# BEFORE the catch-all at the bottom:
+#
+# ingress:
+#   - hostname: agents.connah.com.au
+#     service: http://agent-orchestrator:3000
+#     originRequest:
+#       noTLSVerify: false
+#   # ... your existing rules below
+#   - service: http_status:404
+#
+# Then restart your tunnel:
+#   docker compose restart cloudflared
+#
+# Or if using the Cloudflare dashboard tunnel, add a Public Hostname:
+#   Subdomain: agents
+#   Domain:    connah.com.au
+#   Type:      HTTP
+#   URL:       agent-orchestrator:3000
+
+# ============================================================
+# STEP 4: Make sure agent-orchestrator is on the same Docker network
+# ============================================================
+# If your NPM and Cloudflare tunnel containers use a shared network
+# (e.g. 'proxy' or 'npm_default'), add it to docker-compose.yml:
+#
+# services:
+#   orchestrator:
+#     networks:
+#       - agent-net
+#       - proxy          # ← add your existing NPM network here
+#
+# networks:
+#   agent-net:
+#     name: agent-net
+#   proxy:
+#     external: true     # ← reference existing network, don't recreate it
+#     name: proxy        # ← whatever your NPM network is actually called
