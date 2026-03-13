@@ -1,6 +1,7 @@
 // src/runner.js
 import Docker from "dockerode";
 import path from "path";
+import { execSync } from "child_process";
 import { logger } from "./logger.js";
 import {
   updateTaskStatus,
@@ -13,7 +14,7 @@ const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
 const PROJECTS_PATH = process.env.PROJECTS_PATH || "/projects";
 const VAULT_PATH    = process.env.VAULT_PATH     || "/vault";
-const CLAUDE_CREDS  = process.env.CLAUDE_CREDS   || "/root/.claude";
+const CLAUDE_CREDS  = process.env.CLAUDE_CREDS   || "/home/agent/.claude";
 
 /**
  * Run a Claude Code agent for a given task.
@@ -43,6 +44,9 @@ export async function runTask(task) {
     const output = await runClaudeContainer(fullPrompt, projectPath);
     logger.info(`Agent completed: ${title}`);
 
+    // Commit and push changes to GitHub
+    await gitCommitAndPush(projectPath, title);
+
     // Update vault
     if (currentPath) {
       await updateTaskStatus(currentPath, "done", output.slice(0, 2000));
@@ -56,6 +60,28 @@ export async function runTask(task) {
       await updateTaskStatus(currentPath, "failed", err.message);
     }
     throw err;
+  }
+}
+
+/**
+ * Git add, commit, and push any changes the agent made.
+ */
+async function gitCommitAndPush(projectPath, taskTitle) {
+  try {
+    // Check if there are any changes to commit
+    const status = execSync("git status --porcelain", { cwd: projectPath }).toString().trim();
+    if (!status) {
+      logger.info("No git changes to commit");
+      return;
+    }
+
+    execSync("git add -A", { cwd: projectPath });
+    execSync(`git commit -m "agent: ${taskTitle.replace(/"/g, "'")}"`, { cwd: projectPath });
+    execSync("git push", { cwd: projectPath });
+    logger.info(`Git: committed and pushed changes for "${taskTitle}"`);
+  } catch (err) {
+    // Don't fail the task if git push fails - just log it
+    logger.warn(`Git push failed (non-fatal): ${err.message}`);
   }
 }
 
@@ -90,16 +116,15 @@ function runClaudeContainer(prompt, projectPath) {
         Cmd: ["-p", prompt, "--output-format", "json"],
         HostConfig: {
           Binds: [
-            `${projectPath}:/workspace`,
-            `${VAULT_PATH}:/vault:ro`,
-            `${CLAUDE_CREDS}:/root/.claude:ro`,
+            `${projectPath}:/home/agent/workspace`,
+            `${VAULT_PATH}:/home/agent/vault:ro`,
+            `${CLAUDE_CREDS}:/home/agent/.claude:ro`,
           ],
           AutoRemove: true,
-          // Limit resource usage — subscription accounts aren't billed by compute
           Memory: 512 * 1024 * 1024,    // 512MB
           NanoCpus: 1 * 1e9,             // 1 CPU
         },
-        WorkingDir: "/workspace",
+        WorkingDir: "/home/agent/workspace",
         Tty: false,
       });
 
