@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agent System</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d1117;
+      color: #e6edf3;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #58a6ff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    header h1::before { content: '⬡'; font-size: 22px; }
+
+    #status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #3fb950;
+      display: inline-block;
+      box-shadow: 0 0 6px #3fb950;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-label {
+      font-size: 13px;
+      color: #8b949e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    main {
+      padding: 28px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid #30363d;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8b949e;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-header .count {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 11px;
+      color: #8b949e;
+    }
+
+    .card-body { padding: 16px 18px; }
+
+    /* Stats row */
+    .stats { grid-column: 1 / -1; display: flex; gap: 16px; }
+
+    .stat {
+      flex: 1;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-value { font-size: 28px; font-weight: 700; }
+    .stat-label { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .stat.pending .stat-value   { color: #d29922; }
+    .stat.running .stat-value   { color: #58a6ff; }
+    .stat.done .stat-value      { color: #3fb950; }
+    .stat.failed .stat-value    { color: #f85149; }
+
+    /* Task list */
+    .task-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+    .task-item {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: border-color 0.2s;
+    }
+
+    .task-item:hover { border-color: #388bfd; }
+
+    .task-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .badge-pending    { background: #2d2208; color: #d29922; border: 1px solid #4d3a10; }
+    .badge-inProgress { background: #0c2d6b; color: #58a6ff; border: 1px solid #1f4f9e; }
+    .badge-done       { background: #0d2d1a; color: #3fb950; border: 1px solid #1a5c30; }
+    .badge-failed     { background: #2d0f0f; color: #f85149; border: 1px solid #5c1c1c; }
+
+    .task-info { flex: 1; min-width: 0; }
+    .task-title { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .task-meta  { font-size: 11px; color: #8b949e; margin-top: 3px; }
+
+    .priority-high   { color: #f85149; }
+    .priority-medium { color: #d29922; }
+    .priority-low    { color: #8b949e; }
+
+    /* Containers */
+    .container-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+
+    .container-item {
+      background: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 6px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .container-name { font-size: 13px; font-weight: 500; font-family: monospace; color: #79c0ff; }
+    .container-status { font-size: 11px; color: #8b949e; }
+    .container-running { display: flex; align-items: center; gap: 6px; }
+    .container-running::before {
+      content: '';
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #3fb950;
+      box-shadow: 0 0 4px #3fb950;
+      animation: pulse 2s infinite;
+    }
+
+    /* Logs */
+    .log-area {
+      grid-column: 1 / -1;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #log-output {
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 16px 18px;
+      height: 280px;
+      overflow-y: auto;
+      background: #0d1117;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .log-info  { color: #79c0ff; }
+    .log-warn  { color: #d29922; }
+    .log-error { color: #f85149; }
+    .log-ts    { color: #484f58; margin-right: 6px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px;
+      color: #484f58;
+      font-size: 13px;
+    }
+
+    /* Submit task form */
+    .submit-form {
+      grid-column: 1 / -1;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .form-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+
+    .form-row { display: flex; gap: 12px; }
+
+    input, textarea, select {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-size: 13px;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus, select:focus { border-color: #388bfd; }
+    input::placeholder, textarea::placeholder { color: #484f58; }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    .form-row input, .form-row select { flex: 1; }
+
+    button {
+      background: #238636;
+      border: 1px solid #2ea043;
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      align-self: flex-end;
+    }
+
+    button:hover { background: #2ea043; }
+    button:active { background: #196c2e; }
+
+    #submit-feedback {
+      font-size: 12px;
+      color: #3fb950;
+      display: none;
+      align-self: center;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Agent System</h1>
+  <div class="status-label">
+    <span id="status-dot"></span>
+    <span id="status-text">Connecting...</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat pending">
+      <span class="stat-value" id="count-pending">—</span>
+      <span class="stat-label">Pending</span>
+    </div>
+    <div class="stat running">
+      <span class="stat-value" id="count-running">—</span>
+      <span class="stat-label">Running</span>
+    </div>
+    <div class="stat done">
+      <span class="stat-value" id="count-done">—</span>
+      <span class="stat-label">Done</span>
+    </div>
+    <div class="stat failed">
+      <span class="stat-value" id="count-failed">—</span>
+      <span class="stat-label">Failed</span>
+    </div>
+  </div>
+
+  <!-- Pending tasks -->
+  <div class="card">
+    <div class="card-header">
+      Pending Tasks
+      <span class="count" id="pending-count">0</span>
+    </div>
+    <div class="card-body">
+      <ul class="task-list" id="pending-list">
+        <li class="empty-state">No pending tasks</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Active containers -->
+  <div class="card">
+    <div class="card-header">
+      Active Agent Containers
+      <span class="count" id="container-count">0</span>
+    </div>
+    <div class="card-body">
+      <ul class="container-list" id="container-list">
+        <li class="empty-state">No agents running</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Recent completed -->
+  <div class="card">
+    <div class="card-header">
+      Recently Completed
+      <span class="count" id="done-count">0</span>
+    </div>
+    <div class="card-body">
+      <ul class="task-list" id="done-list">
+        <li class="empty-state">No completed tasks</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Failed tasks -->
+  <div class="card">
+    <div class="card-header">
+      Failed
+      <span class="count" id="failed-count">0</span>
+    </div>
+    <div class="card-body">
+      <ul class="task-list" id="failed-list">
+        <li class="empty-state">No failed tasks</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Submit task -->
+  <div class="submit-form">
+    <div class="card-header">Submit Task</div>
+    <div class="form-body">
+      <div class="form-row">
+        <input type="text" id="task-title" placeholder="Task title" />
+        <input type="text" id="task-project" placeholder="Project name (e.g. TripCore)" />
+        <select id="task-priority">
+          <option value="high">High</option>
+          <option value="medium" selected>Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <textarea id="task-body" placeholder="Describe the task in detail..."></textarea>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button onclick="submitTask()">Submit Task</button>
+        <span id="submit-feedback">✓ Task queued</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live logs -->
+  <div class="log-area">
+    <div class="card-header">Live Orchestrator Log</div>
+    <div id="log-output"></div>
+  </div>
+
+</main>
+
+<script>
+  let logOffset = 0;
+
+  async function fetchJSON(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(res.status);
+    return res.json();
+  }
+
+  function taskItem(task, status) {
+    const badge = `<span class="task-badge badge-${status}">${status}</span>`;
+    const priority = `<span class="priority-${task.priority || 'medium'}">${task.priority || 'medium'}</span>`;
+    return `
+      <li class="task-item">
+        ${badge}
+        <div class="task-info">
+          <div class="task-title">${task.filename?.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace('.md','') || task.id || 'Task'}</div>
+          <div class="task-meta">${task.project || ''} · ${priority}</div>
+        </div>
+      </li>`;
+  }
+
+  function renderList(id, tasks, status, maxItems = 5) {
+    const el = document.getElementById(id);
+    if (!tasks.length) {
+      el.innerHTML = `<li class="empty-state">No ${status} tasks</li>`;
+      return;
+    }
+    el.innerHTML = tasks.slice(0, maxItems).map(t => taskItem(t, status)).join('');
+  }
+
+  async function refresh() {
+    try {
+      const [pending, inProgress, done, failed, containers, health] =
+        await Promise.all([
+          fetchJSON('/tasks/pending'),
+          fetchJSON('/tasks/inProgress'),
+          fetchJSON('/tasks/done'),
+          fetchJSON('/tasks/failed'),
+          fetchJSON('/containers'),
+          fetchJSON('/health'),
+        ]);
+
+      // Status dot
+      document.getElementById('status-text').textContent = 'Orchestrator online';
+      document.getElementById('status-dot').style.background = '#3fb950';
+      document.getElementById('status-dot').style.boxShadow = '0 0 6px #3fb950';
+
+      // Stats
+      document.getElementById('count-pending').textContent = pending.length;
+      document.getElementById('count-running').textContent = inProgress.length;
+      document.getElementById('count-done').textContent = done.length;
+      document.getElementById('count-failed').textContent = failed.length;
+
+      // Counts
+      document.getElementById('pending-count').textContent = pending.length;
+      document.getElementById('done-count').textContent = done.length;
+      document.getElementById('failed-count').textContent = failed.length;
+      document.getElementById('container-count').textContent = containers.length;
+
+      // Lists
+      renderList('pending-list', pending, 'pending');
+      renderList('done-list', done, 'done');
+      renderList('failed-list', failed, 'failed');
+
+      // Containers
+      const cList = document.getElementById('container-list');
+      if (!containers.length) {
+        cList.innerHTML = '<li class="empty-state">No agents running</li>';
+      } else {
+        cList.innerHTML = containers.map(c => `
+          <li class="container-item">
+            <div>
+              <div class="container-name">${c.name}</div>
+              <div class="container-status">${c.image} · ${c.status}</div>
+            </div>
+            <div class="container-running">Running</div>
+          </li>`).join('');
+      }
+    } catch (e) {
+      document.getElementById('status-text').textContent = 'Offline';
+      document.getElementById('status-dot').style.background = '#f85149';
+      document.getElementById('status-dot').style.boxShadow = '0 0 6px #f85149';
+    }
+
+    // Logs
+    try {
+      const logs = await fetchJSON(`/logs?offset=${logOffset}`);
+      if (logs.lines?.length) {
+        const out = document.getElementById('log-output');
+        logs.lines.forEach(line => {
+          const span = document.createElement('span');
+          const ts = line.match(/\[(.+?)\]/)?.[1] || '';
+          const level = line.includes('ERROR') ? 'log-error' : line.includes('WARN') ? 'log-warn' : 'log-info';
+          span.innerHTML = `<span class="log-ts">${ts}</span><span class="${level}">${line.replace(/\[.+?\]\s*/, '')}</span>\n`;
+          out.appendChild(span);
+        });
+        out.scrollTop = out.scrollHeight;
+        logOffset = logs.nextOffset;
+      }
+    } catch {}
+  }
+
+  async function submitTask() {
+    const title    = document.getElementById('task-title').value.trim();
+    const project  = document.getElementById('task-project').value.trim();
+    const priority = document.getElementById('task-priority').value;
+    const body     = document.getElementById('task-body').value.trim();
+
+    if (!title || !project || !body) {
+      alert('Please fill in title, project, and task description.');
+      return;
+    }
+
+    await fetch('/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task: body, project, title, priority }),
+    });
+
+    document.getElementById('task-title').value = '';
+    document.getElementById('task-body').value = '';
+    const fb = document.getElementById('submit-feedback');
+    fb.style.display = 'inline';
+    setTimeout(() => { fb.style.display = 'none'; }, 3000);
+    refresh();
+  }
+
+  // Poll every 5 seconds
+  refresh();
+  setInterval(refresh, 5000);
+</script>
+
+</body>
+</html>
