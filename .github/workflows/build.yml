@@ -44,3 +44,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Trigger Portainer redeploy
+        run: |
+          curl -X POST \
+            "https://portainer.connah.com.au/api/stacks/webhooks/bca6ad50-58fc-4d1d-bc4b-08495636fe4d" \
+            --fail \
+            --silent \
+            --show-error
