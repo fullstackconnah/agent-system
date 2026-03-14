@@ -1,3 +1,11 @@
+FROM node:22-slim AS client-build
+
+WORKDIR /build
+COPY client/package.json client/package-lock.json* ./
+RUN npm install
+COPY client/ ./
+RUN npm run build
+
 FROM node:22-slim
 
 RUN apt-get update && apt-get install -y \
@@ -14,6 +22,9 @@ COPY package.json .
 RUN npm install
 
 COPY src/ ./src/
+
+# Copy built React app into the public directory served by Express
+COPY --from=client-build /build/dist ./src/public
 
 EXPOSE 3000
 
