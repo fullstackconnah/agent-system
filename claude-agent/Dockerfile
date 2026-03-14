@@ -5,8 +5,10 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
-RUN useradd -m -s /bin/bash agent
+# Remove existing node user (UID 1000) and create agent user with UID 1000
+# to match host file ownership (connah user)
+RUN userdel -r node 2>/dev/null; \
+    useradd -m -s /bin/bash -u 1000 agent
 
 # Install Claude Code as non-root user
 USER agent
