@@ -6,6 +6,7 @@ import TaskCard from './components/TaskCard';
 import ContainerCard from './components/ContainerCard';
 import LogViewer from './components/LogViewer';
 import TaskPanel from './components/TaskPanel';
+import Footer from './components/Footer';
 
 const gridStyle = {
   padding: '24px 32px 48px',
@@ -69,6 +70,8 @@ export default function App() {
           <LogViewer logs={logs} delay={0.48} />
         </div>
       </main>
+
+      <Footer />
 
       <TaskPanel
         open={panelOpen}
