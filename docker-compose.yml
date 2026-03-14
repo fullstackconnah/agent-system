@@ -8,6 +8,9 @@ services:
       - VAULT_PATH=/vault
       - PROJECTS_PATH=/projects
       - CLAUDE_CREDS=/root/.claude
+      - HOST_VAULT_PATH=/home/connah/obsidian-vault
+      - HOST_PROJECTS_PATH=/home/connah/projects
+      - HOST_CLAUDE_CREDS=/home/connah/.claude
       - PORT=3000
     volumes:
       - /home/connah/obsidian-vault:/vault

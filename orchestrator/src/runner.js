@@ -16,6 +16,11 @@ const PROJECTS_PATH = process.env.PROJECTS_PATH || "/projects";
 const VAULT_PATH    = process.env.VAULT_PATH     || "/vault";
 const CLAUDE_CREDS  = process.env.CLAUDE_CREDS   || "/home/agent/.claude";
 
+// Host paths for agent container bind mounts (Docker-in-Docker requires host paths)
+const HOST_PROJECTS_PATH = process.env.HOST_PROJECTS_PATH || PROJECTS_PATH;
+const HOST_VAULT_PATH    = process.env.HOST_VAULT_PATH    || VAULT_PATH;
+const HOST_CLAUDE_CREDS  = process.env.HOST_CLAUDE_CREDS  || CLAUDE_CREDS;
+
 /**
  * Run a Claude Code agent for a given task.
  * @param {object} task - { filepath, body, project, title, priority }
@@ -111,14 +116,18 @@ function runClaudeContainer(prompt, projectPath) {
     let output = "";
 
     try {
+      // Convert orchestrator-internal path to host path for bind mount
+      const hostProjectPath = projectPath.replace(PROJECTS_PATH, HOST_PROJECTS_PATH);
+
       const container = await docker.createContainer({
         Image: "claude-agent:latest",
         Cmd: ["-p", prompt, "--output-format", "json"],
+        User: "1000:1000",
         HostConfig: {
           Binds: [
-            `${projectPath}:/home/agent/workspace`,
-            `${VAULT_PATH}:/home/agent/vault:ro`,
-            `${CLAUDE_CREDS}:/home/agent/.claude:ro`,
+            `${hostProjectPath}:/home/agent/workspace`,
+            `${HOST_VAULT_PATH}:/home/agent/vault:ro`,
+            `${HOST_CLAUDE_CREDS}:/home/agent/.claude:ro`,
           ],
           AutoRemove: true,
           Memory: 512 * 1024 * 1024,    // 512MB
