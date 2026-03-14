@@ -61,6 +61,8 @@ export default function TaskPanel({ open, onClose, onSubmit }) {
 
     await onSubmit({ title: title.trim(), project: project.trim(), priority, body: body.trim() });
     setTitle('');
+    setProject('');
+    setPriority('medium');
     setBody('');
     setFeedback(true);
     setTimeout(() => {

@@ -27,7 +27,6 @@ export function useApi(interval = 5000) {
           fetchJSON('/tasks/done'),
           fetchJSON('/tasks/failed'),
           fetchJSON('/containers'),
-          fetchJSON('/health'),
         ]);
 
       setData({ pending, inProgress, done, failed, containers, online: true });
