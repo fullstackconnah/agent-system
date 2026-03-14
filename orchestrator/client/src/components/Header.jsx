@@ -122,7 +122,7 @@ export default function Header({ online, onNewTask }) {
           e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.4)';
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.transform = '';
           e.currentTarget.style.boxShadow = '0 2px 12px rgba(168,85,247,0.25)';
         }}
       >
