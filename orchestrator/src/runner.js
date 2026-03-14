@@ -12,6 +12,7 @@ import {
 
 const docker = new Docker({ socketPath: "/var/run/docker.sock" });
 
+const AGENT_IMAGE = process.env.AGENT_IMAGE || "ghcr.io/fullstackconnah/claude-agent:latest";
 const PROJECTS_PATH = process.env.PROJECTS_PATH || "/projects";
 const VAULT_PATH    = process.env.VAULT_PATH     || "/vault";
 const CLAUDE_CREDS  = process.env.CLAUDE_CREDS   || "/home/agent/.claude";
@@ -120,7 +121,7 @@ function runClaudeContainer(prompt, projectPath) {
       const hostProjectPath = projectPath.replace(PROJECTS_PATH, HOST_PROJECTS_PATH);
 
       const container = await docker.createContainer({
-        Image: "claude-agent:latest",
+        Image: AGENT_IMAGE,
         Cmd: ["-p", prompt, "--output-format", "json"],
         User: "1000:1000",
         HostConfig: {

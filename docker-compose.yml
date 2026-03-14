@@ -11,6 +11,7 @@ services:
       - HOST_VAULT_PATH=/home/connah/obsidian-vault
       - HOST_PROJECTS_PATH=/home/connah/projects
       - HOST_CLAUDE_CREDS=/home/connah/.claude
+      - AGENT_IMAGE=ghcr.io/fullstackconnah/claude-agent:latest
       - PORT=3000
     volumes:
       - /home/connah/obsidian-vault:/vault
