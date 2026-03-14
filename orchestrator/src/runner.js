@@ -16,6 +16,7 @@ const AGENT_IMAGE = process.env.AGENT_IMAGE || "ghcr.io/fullstackconnah/claude-a
 const PROJECTS_PATH = process.env.PROJECTS_PATH || "/projects";
 const VAULT_PATH    = process.env.VAULT_PATH     || "/vault";
 const CLAUDE_CREDS  = process.env.CLAUDE_CREDS   || "/home/agent/.claude";
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
 
 // Host paths for agent container bind mounts (Docker-in-Docker requires host paths)
 const HOST_PROJECTS_PATH = process.env.HOST_PROJECTS_PATH || PROJECTS_PATH;
@@ -132,16 +133,30 @@ function runClaudeContainer(prompt, projectPath) {
       // Convert orchestrator-internal path to host path for bind mount
       const hostProjectPath = projectPath.replace(PROJECTS_PATH, HOST_PROJECTS_PATH);
 
+      // Build bind mounts - always include workspace and vault
+      const binds = [
+        `${hostProjectPath}:/home/agent/workspace`,
+        `${HOST_VAULT_PATH}:/home/agent/vault:ro`,
+      ];
+
+      // Only mount OAuth credentials if no API key is configured
+      if (!ANTHROPIC_API_KEY) {
+        binds.push(`${HOST_CLAUDE_CREDS}:/home/agent/.claude:ro`);
+      }
+
+      // Pass API key to container if configured
+      const env = [];
+      if (ANTHROPIC_API_KEY) {
+        env.push(`ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}`);
+      }
+
       const container = await docker.createContainer({
         Image: AGENT_IMAGE,
         Cmd: ["-p", prompt, "--output-format", "json"],
+        Env: env,
         User: "1000:1000",
         HostConfig: {
-          Binds: [
-            `${hostProjectPath}:/home/agent/workspace`,
-            `${HOST_VAULT_PATH}:/home/agent/vault:ro`,
-            `${HOST_CLAUDE_CREDS}:/home/agent/.claude:ro`,
-          ],
+          Binds: binds,
           AutoRemove: true,
           Memory: 512 * 1024 * 1024,    // 512MB
           NanoCpus: 1 * 1e9,             // 1 CPU
