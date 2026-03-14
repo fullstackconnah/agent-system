@@ -117,6 +117,18 @@ function runClaudeContainer(prompt, projectPath) {
     let output = "";
 
     try {
+      // Pull latest agent image before spawning (non-fatal if pull fails)
+      try {
+        await new Promise((res, rej) => {
+          docker.pull(AGENT_IMAGE, (err, stream) => {
+            if (err) return rej(err);
+            docker.modem.followProgress(stream, (err) => err ? rej(err) : res());
+          });
+        });
+      } catch (pullErr) {
+        logger.warn(`Image pull failed (using cached): ${pullErr.message}`);
+      }
+
       // Convert orchestrator-internal path to host path for bind mount
       const hostProjectPath = projectPath.replace(PROJECTS_PATH, HOST_PROJECTS_PATH);
 
