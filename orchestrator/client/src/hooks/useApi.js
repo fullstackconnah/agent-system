@@ -16,7 +16,7 @@ export function useApi(interval = 5000) {
     online: false,
   });
   const [logs, setLogs] = useState([]);
-  const logOffsetRef = useRef(0);
+  const logOffset = useRef(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -36,10 +36,10 @@ export function useApi(interval = 5000) {
     }
 
     try {
-      const result = await fetchJSON(`/logs?offset=${logOffsetRef.current}`);
+      const result = await fetchJSON(`/logs?offset=${logOffset.current}`);
       if (result.lines?.length) {
         setLogs((prev) => [...prev, ...result.lines]);
-        logOffsetRef.current = result.nextOffset;
+        logOffset.current = result.nextOffset;
       }
     } catch {}
   }, []);
