@@ -144,7 +144,29 @@ docker logs agent-orchestrator -f
 
 ---
 
-## Keeping Credentials Fresh
+## Authentication
+
+The orchestrator supports two auth modes for Claude agents:
+
+### Option A — API Key (recommended for remote access)
+
+Use an Anthropic API key from [console.anthropic.com](https://console.anthropic.com).
+
+**Setup via Portainer:**
+1. Open your Portainer dashboard
+2. Go to the **agent-system stack** → **Environment variables**
+3. Add: `ANTHROPIC_API_KEY` = `sk-ant-api03-...`
+4. Click **Update the stack**
+
+**Verify:**
+```bash
+curl https://agents.connah.com.au/health
+# Expected: {"status":"ok","authMode":"api-key","timestamp":"..."}
+```
+
+When `ANTHROPIC_API_KEY` is set, agent containers use it directly and skip mounting `~/.claude` OAuth credentials.
+
+### Option B — OAuth credentials (requires SSH/desktop access)
 
 If Claude or Gemini sessions expire, re-run on Windows:
 ```powershell
@@ -154,6 +176,12 @@ If Claude or Gemini sessions expire, re-run on Windows:
 Then restart orchestrator on server:
 ```bash
 docker compose restart orchestrator
+```
+
+**Verify:**
+```bash
+curl https://agents.connah.com.au/health
+# Expected: {"status":"ok","authMode":"oauth","timestamp":"..."}
 ```
 
 ---

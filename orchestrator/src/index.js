@@ -21,7 +21,11 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // --- Health check ---
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({
+    status: "ok",
+    authMode: process.env.ANTHROPIC_API_KEY ? "api-key" : "oauth",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // --- Submit a task ---
@@ -89,6 +93,9 @@ cron.schedule("*/2 * * * *", async () => {
 });
 
 const PORT = process.env.PORT || 3000;
+const authMode = process.env.ANTHROPIC_API_KEY ? "api-key" : "oauth";
+
 app.listen(PORT, () => {
   logger.info(`Orchestrator running on port ${PORT}`);
+  logger.info(`Auth mode: ${authMode}${authMode === "oauth" ? " (mount ~/.claude)" : " (ANTHROPIC_API_KEY set)"}`);
 });
