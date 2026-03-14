@@ -21,18 +21,22 @@ const linkStyle = {
 };
 
 export default function Footer() {
+  const pr = __DEPLOYED_PR__;
+
+  if (!pr) return null;
+
   return (
     <footer style={footerStyle}>
-      <span>Latest PR:</span>
+      <span>Deployed PR:</span>
       <a
-        href="https://github.com/fullstackconnah/agent-system/pull/4"
+        href={`https://github.com/fullstackconnah/agent-system/pull/${pr.number}`}
         target="_blank"
         rel="noopener noreferrer"
         style={linkStyle}
         onMouseEnter={(e) => (e.target.style.color = 'var(--accent-cyan)')}
         onMouseLeave={(e) => (e.target.style.color = 'var(--accent-purple)')}
       >
-        #4 test: add comprehensive dashboard test suite and fix two bugs
+        #{pr.number} {pr.title}
       </a>
     </footer>
   );
