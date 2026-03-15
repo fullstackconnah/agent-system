@@ -21,23 +21,17 @@ const linkStyle = {
 };
 
 export default function Footer() {
-  const pr = __DEPLOYED_PR__;
+  const deploy = __DEPLOYED_PR__;
 
-  if (!pr) return null;
+  if (!deploy) return null;
 
   return (
     <footer style={footerStyle}>
-      <span>Deployed PR:</span>
-      <a
-        href={`https://github.com/fullstackconnah/agent-system/pull/${pr.number}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        style={linkStyle}
-        onMouseEnter={(e) => (e.target.style.color = 'var(--accent-cyan)')}
-        onMouseLeave={(e) => (e.target.style.color = 'var(--accent-purple)')}
-      >
-        #{pr.number} {pr.title}
-      </a>
+      <span>Deployed:</span>
+      <span style={linkStyle}>
+        {deploy.sha && <span style={{ opacity: 0.6 }}>{deploy.sha} </span>}
+        {deploy.title}
+      </span>
     </footer>
   );
 }

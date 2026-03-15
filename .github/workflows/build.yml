@@ -38,6 +38,9 @@ jobs:
           context: ./orchestrator
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/agent-orchestrator:latest
+          build-args: |
+            DEPLOY_TITLE=${{ github.event.head_commit.message }}
+            DEPLOY_SHA=${{ github.sha }}
           no-cache: true
 
   build-claude-agent:

@@ -1,5 +1,10 @@
 FROM node:22-slim AS client-build
 
+ARG DEPLOY_TITLE=""
+ARG DEPLOY_SHA=""
+ENV DEPLOY_TITLE=${DEPLOY_TITLE}
+ENV DEPLOY_SHA=${DEPLOY_SHA}
+
 WORKDIR /build
 COPY client/package.json client/package-lock.json* ./
 RUN npm install
