@@ -1,52 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
-
-const inputStyle = {
-  background: 'rgba(12, 12, 20, 0.6)',
-  border: '1px solid var(--border)',
-  borderRadius: 10,
-  color: 'var(--text-primary)',
-  fontSize: 14,
-  padding: '12px 16px',
-  outline: 'none',
-  transition: 'border-color 0.2s, box-shadow 0.2s',
-  fontFamily: "'Inter', sans-serif",
-  width: '100%',
-};
-
-const focusStyle = {
-  borderColor: 'var(--accent-purple)',
-  boxShadow: '0 0 0 3px rgba(168,85,247,0.1), 0 0 12px rgba(168,85,247,0.1)',
-};
-
-function FormInput({ type = 'text', placeholder, value, onChange, autoFocus }) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={onChange}
-      autoFocus={autoFocus}
-      style={{ ...inputStyle, ...(focused ? focusStyle : {}) }}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
-    />
-  );
-}
+import { useTheme } from '../ThemeContext';
 
 export default function TaskPanel({ open, onClose, onSubmit }) {
+  const { theme } = useTheme();
   const [title, setTitle] = useState('');
   const [project, setProject] = useState('');
   const [priority, setPriority] = useState('medium');
   const [body, setBody] = useState('');
   const [feedback, setFeedback] = useState(false);
-  const [selectFocused, setSelectFocused] = useState(false);
-  const [textareaFocused, setTextareaFocused] = useState(false);
   const titleRef = useRef(null);
+
+  const isSignal = theme === 'signal';
+  const isForge = theme === 'forge';
+  const isMeridian = theme === 'meridian';
 
   useEffect(() => {
     if (open && titleRef.current) {
-      setTimeout(() => titleRef.current?.focus(), 350);
+      setTimeout(() => titleRef.current?.focus(), 300);
     }
   }, [open]);
 
@@ -58,30 +28,62 @@ export default function TaskPanel({ open, onClose, onSubmit }) {
 
   const handleSubmit = async () => {
     if (!title.trim() || !project.trim() || !body.trim()) return;
-
     await onSubmit({ title: title.trim(), project: project.trim(), priority, body: body.trim() });
     setTitle('');
     setProject('');
     setPriority('medium');
     setBody('');
     setFeedback(true);
-    setTimeout(() => {
-      setFeedback(false);
-      onClose();
-    }, 2000);
+    setTimeout(() => { setFeedback(false); onClose(); }, 2000);
   };
+
+  const inputBase = {
+    background: isForge ? 'var(--bg-surface)' : 'var(--bg-input)',
+    border: `var(--border-width) solid var(--border)`,
+    borderRadius: 'var(--radius)',
+    color: 'var(--text-primary)',
+    fontSize: 14,
+    padding: '12px 16px',
+    outline: 'none',
+    transition: 'border-color 0.15s',
+    fontFamily: isSignal ? 'var(--font-data)' : 'var(--font-body)',
+    width: '100%',
+    caretColor: 'var(--accent)',
+    ...(isForge ? { boxShadow: '3px 3px 0 var(--shadow-color)' } : {}),
+  };
+
+  const handleFocus = (e) => {
+    e.target.style.borderColor = 'var(--border-active)';
+  };
+  const handleBlur = (e) => {
+    e.target.style.borderColor = 'var(--border)';
+  };
+
+  const labelStyle = {
+    fontSize: 11,
+    fontWeight: isMeridian ? 500 : 600,
+    textTransform: isMeridian ? 'none' : 'uppercase',
+    letterSpacing: isMeridian ? '0.02em' : '0.08em',
+    color: 'var(--text-secondary)',
+    fontFamily: 'var(--font-body)',
+  };
+
+  const sectionPrefix = isSignal ? '> ' : (isMeridian ? '◈ ' : '');
+  const closeText = isSignal ? '[ ESC ]' : '✕';
+  const submitText = isSignal ? '[ EXECUTE ]' : (isMeridian ? 'Submit Task' : '[ EXECUTE ]');
+
+  const priorities = ['high', 'medium', 'low'];
 
   return (
     <div
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(4px)',
+        background: isForge ? 'rgba(0,0,0,0.3)' : 'rgba(8, 8, 12, 0.85)',
         zIndex: 200,
         opacity: open ? 1 : 0,
         visibility: open ? 'visible' : 'hidden',
-        transition: 'opacity 0.3s, visibility 0.3s',
+        transition: 'opacity 0.2s, visibility 0.2s',
       }}
       onClick={onClose}
     >
@@ -91,196 +93,212 @@ export default function TaskPanel({ open, onClose, onSubmit }) {
           top: 0,
           right: 0,
           bottom: 0,
-          width: 420,
+          width: 440,
           maxWidth: '90vw',
-          background: 'rgba(12, 12, 20, 0.9)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          borderLeft: '1px solid var(--border)',
+          background: isForge ? 'var(--bg-void)' : 'var(--bg-surface)',
+          borderLeft: `var(--border-width) solid var(--accent)`,
           zIndex: 201,
           transform: open ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '-8px 0 40px rgba(0,0,0,0.4)',
+          boxShadow: isForge ? '-6px 0 0 var(--shadow-color)' : '-8px 0 40px rgba(0,0,0,0.4)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Gradient left border */}
-        <div
-          style={{
-            position: 'absolute',
-            left: 0, top: 0, bottom: 0,
-            width: 2,
-            background: 'linear-gradient(180deg, var(--accent-purple), var(--accent-cyan), var(--accent-pink))',
-          }}
-        />
-
         {/* Header */}
-        <div
-          style={{
-            padding: '24px 28px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <span
-            style={{
-              fontSize: 18,
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            New Task
+        <div style={{
+          padding: '20px 24px',
+          borderBottom: `1px solid var(--border)`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <span style={{
+            fontSize: isMeridian ? 18 : 14,
+            fontWeight: isMeridian ? 600 : 700,
+            color: 'var(--accent)',
+            fontFamily: 'var(--font-heading)',
+            textTransform: isMeridian ? 'none' : 'uppercase',
+            letterSpacing: isMeridian ? '0.02em' : '0.08em',
+          }}>
+            {sectionPrefix}{isMeridian ? 'New Task' : 'NEW TASK'}
           </span>
           <button
             onClick={onClose}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              border: '1px solid var(--border)',
               background: 'transparent',
-              color: 'var(--text-muted)',
-              fontSize: 18,
+              border: isSignal ? `1px solid var(--border)` : 'none',
+              borderRadius: 'var(--radius)',
+              color: 'var(--text-secondary)',
+              fontSize: isSignal ? 11 : 18,
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background 0.2s, color 0.2s',
-              fontFamily: "'Inter', sans-serif",
+              padding: isSignal ? '4px 10px' : '4px',
+              fontFamily: isSignal ? 'var(--font-data)' : 'var(--font-body)',
+              transition: 'color 0.15s',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--bg-elevated)';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-muted)';
-            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
           >
-            ✕
+            {closeText}
           </button>
         </div>
 
         {/* Body */}
-        <div
-          style={{
-            padding: 28,
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 20,
-            overflowY: 'auto',
-          }}
-        >
+        <div style={{
+          padding: 24,
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 20,
+          overflowY: 'auto',
+        }}>
+          {/* Task Title */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label style={labelStyle}>Task Title</label>
+            <label style={labelStyle}>{isMeridian ? 'Task Title' : 'TASK TITLE'}</label>
             <input
               ref={titleRef}
               type="text"
               placeholder="What needs to be done?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              style={inputStyle}
-              onFocus={(e) => Object.assign(e.target.style, focusStyle)}
-              onBlur={(e) => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+              style={inputBase}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label style={labelStyle}>Project</label>
-              <FormInput placeholder="e.g. TripCore" value={project} onChange={(e) => setProject(e.target.value)} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label style={labelStyle}>Priority</label>
-              <select
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                style={{
-                  ...inputStyle,
-                  cursor: 'pointer',
-                  appearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6b80' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 14px center',
-                  paddingRight: 36,
-                  ...(selectFocused ? focusStyle : {}),
-                }}
-                onFocus={() => setSelectFocused(true)}
-                onBlur={() => setSelectFocused(false)}
-              >
-                <option value="high" style={{ background: 'var(--bg-deep)' }}>High</option>
-                <option value="medium" style={{ background: 'var(--bg-deep)' }}>Medium</option>
-                <option value="low" style={{ background: 'var(--bg-deep)' }}>Low</option>
-              </select>
+          {/* Project */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <label style={labelStyle}>{isMeridian ? 'Project' : 'PROJECT'}</label>
+            <input
+              type="text"
+              placeholder="e.g. agent-system"
+              value={project}
+              onChange={(e) => setProject(e.target.value)}
+              style={inputBase}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+            />
+          </div>
+
+          {/* Priority Toggles */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <label style={labelStyle}>{isMeridian ? 'Priority' : 'PRIORITY'}</label>
+            <div style={{ display: 'flex', gap: isForge ? 8 : 4 }}>
+              {priorities.map(p => {
+                const isActive = priority === p;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPriority(p)}
+                    style={{
+                      flex: 1,
+                      padding: '10px 12px',
+                      border: `var(--border-width) solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                      borderRadius: 'var(--radius)',
+                      background: isActive ? 'var(--accent-glow)' : 'transparent',
+                      color: isActive ? 'var(--accent)' : 'var(--text-ghost)',
+                      fontFamily: 'var(--font-data)',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      cursor: 'pointer',
+                      transition: 'all 0.1s',
+                      ...(isForge && isActive ? { boxShadow: '3px 3px 0 var(--shadow-color)' } : {}),
+                    }}
+                  >
+                    {isSignal ? `[ ${p.toUpperCase()} ]` : p.toUpperCase()}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
+          {/* Description */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label style={labelStyle}>Description</label>
+            <label style={labelStyle}>{isMeridian ? 'Description' : 'DESCRIPTION'}</label>
             <textarea
               placeholder="Describe the task in detail..."
               value={body}
               onChange={(e) => setBody(e.target.value)}
               style={{
-                ...inputStyle,
+                ...inputBase,
                 resize: 'vertical',
                 minHeight: 120,
                 lineHeight: 1.6,
-                ...(textareaFocused ? focusStyle : {}),
               }}
-              onFocus={() => setTextareaFocused(true)}
-              onBlur={() => setTextareaFocused(false)}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
             />
           </div>
 
+          {/* Submit */}
           <button
             onClick={handleSubmit}
             style={{
-              background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))',
-              border: 'none',
-              color: '#fff',
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 14,
-              fontWeight: 700,
+              background: 'var(--accent)',
+              border: isForge ? 'var(--border-width) solid var(--border)' : `var(--border-width) solid var(--accent)`,
+              color: 'var(--text-inverse)',
+              fontFamily: 'var(--font-heading)',
+              fontSize: 13,
+              fontWeight: 600,
               padding: '14px 24px',
-              borderRadius: 'var(--radius-btn)',
+              borderRadius: 'var(--radius)',
               cursor: 'pointer',
-              transition: 'transform 0.15s, box-shadow 0.3s',
-              boxShadow: '0 4px 16px rgba(168,85,247,0.3)',
+              transition: 'all 0.1s',
+              textTransform: isMeridian ? 'none' : 'uppercase',
+              letterSpacing: isMeridian ? '0.02em' : '0.08em',
               width: '100%',
               marginTop: 8,
+              ...(isForge ? { boxShadow: '4px 4px 0 var(--shadow-color)' } : {}),
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 6px 24px rgba(168,85,247,0.45)';
+              if (isForge) {
+                e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                e.currentTarget.style.boxShadow = '6px 6px 0 var(--shadow-color)';
+              } else {
+                e.currentTarget.style.background = 'var(--accent-dim)';
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(168,85,247,0.3)';
+              if (isForge) {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '4px 4px 0 var(--shadow-color)';
+              } else {
+                e.currentTarget.style.background = 'var(--accent)';
+              }
+            }}
+            onMouseDown={(e) => {
+              if (isForge) {
+                e.currentTarget.style.transform = 'translate(4px, 4px)';
+                e.currentTarget.style.boxShadow = 'none';
+              } else if (isSignal) {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--accent)';
+              }
+            }}
+            onMouseUp={(e) => {
+              if (isSignal) {
+                e.currentTarget.style.background = 'var(--accent)';
+                e.currentTarget.style.color = 'var(--text-inverse)';
+              }
             }}
           >
-            Submit Task
+            {submitText}
           </button>
 
           {feedback && (
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: 'var(--status-done)',
-                textAlign: 'center',
-                animation: 'fadeIn 0.3s ease',
-              }}
-            >
-              ✓ Task queued successfully
+            <div style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--status-running)',
+              textAlign: 'center',
+              animation: 'fadeIn 0.2s ease',
+              fontFamily: 'var(--font-data)',
+            }}>
+              {isSignal ? '[ TASK QUEUED ✓ ]' : '✓ Task queued successfully'}
             </div>
           )}
         </div>
@@ -288,11 +306,3 @@ export default function TaskPanel({ open, onClose, onSubmit }) {
     </div>
   );
 }
-
-const labelStyle = {
-  fontSize: 11,
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  letterSpacing: '0.08em',
-  color: 'var(--text-muted)',
-};

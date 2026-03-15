@@ -1,26 +1,168 @@
-:root {
-  --bg-deepest: #06060b;
-  --bg-deep: #0c0c14;
-  --bg-surface: #12121e;
-  --bg-elevated: #1a1a2e;
-  --border: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(255, 255, 255, 0.12);
-  --text-primary: #e8e8f0;
-  --text-muted: #6b6b80;
-  --accent-purple: #a855f7;
-  --accent-cyan: #06b6d4;
-  --accent-pink: #ec4899;
-  --status-pending: #f59e0b;
-  --status-running: #06b6d4;
-  --status-done: #10b981;
-  --status-failed: #ef4444;
-  --glass-bg: rgba(18, 18, 30, 0.5);
-  --glass-blur: blur(12px);
-  --radius-card: 16px;
-  --radius-badge: 8px;
-  --radius-btn: 12px;
+/* ═══════════════════════════════════════════════
+   NEXUS — Multi-Theme Design System
+   Themes: SIGNAL | FORGE | MERIDIAN
+   ═══════════════════════════════════════════════ */
+
+/* ─── SIGNAL: Tactical HUD ─── */
+[data-theme="signal"] {
+  --bg-void: #08080C;
+  --bg-surface: #111118;
+  --bg-elevated: #1A1A24;
+  --bg-input: #0D0D14;
+  --bg-terminal: #050508;
+
+  --accent: #00FF88;
+  --accent-dim: #00CC6A;
+  --accent-glow: rgba(0, 255, 136, 0.15);
+  --accent-muted: #0A3D24;
+
+  --text-primary: #E0E0E8;
+  --text-secondary: #7A7A8E;
+  --text-ghost: #3A3A4A;
+  --text-inverse: #08080C;
+
+  --status-pending: #FFB000;
+  --status-running: #00FF88;
+  --status-done: #00D4FF;
+  --status-failed: #FF3366;
+  --status-idle: #3A3A4A;
+
+  --border: #1E1E2A;
+  --border-active: #00FF88;
+  --border-hard: #2A2A3A;
+
+  --radius: 0px;
+  --radius-badge: 0px;
+  --border-width: 2px;
+  --shadow-x: 0px;
+  --shadow-y: 0px;
+  --shadow-color: transparent;
+
+  --font-display: 'Orbitron', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+
+  --card-bg: #111118;
+  --card-border: #1E1E2A;
+  --card-hover-border: #2A2A3A;
+  --header-bg: #111118;
+  --scrollbar-thumb: #2A2A3A;
+  --scrollbar-thumb-hover: #00FF88;
+
+  --heading-transform: uppercase;
+  --heading-spacing: 0.12em;
+  --section-prefix: '> ';
+  --btn-text: '[ + NEW TASK ]';
 }
 
+/* ─── FORGE: Neo-Brutalist ─── */
+[data-theme="forge"] {
+  --bg-void: #FFFDF5;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFF8E7;
+  --bg-input: #FFFFFF;
+  --bg-terminal: #FFFFFF;
+
+  --accent: #3B82F6;
+  --accent-dim: #2563EB;
+  --accent-glow: #EFF6FF;
+  --accent-muted: #DBEAFE;
+
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B7280;
+  --text-ghost: #9CA3AF;
+  --text-inverse: #FFFFFF;
+
+  --status-pending: #F59E0B;
+  --status-running: #10B981;
+  --status-done: #3B82F6;
+  --status-failed: #EF4444;
+  --status-idle: #D1D5DB;
+
+  --border: #000000;
+  --border-active: #000000;
+  --border-hard: #000000;
+
+  --radius: 0px;
+  --radius-badge: 999px;
+  --border-width: 3px;
+  --shadow-x: 4px;
+  --shadow-y: 4px;
+  --shadow-color: #000000;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+
+  --card-bg: #FFFFFF;
+  --card-border: #000000;
+  --card-hover-border: #000000;
+  --header-bg: #FFFFFF;
+  --scrollbar-thumb: #000000;
+  --scrollbar-thumb-hover: #3B82F6;
+
+  --heading-transform: uppercase;
+  --heading-spacing: 0.08em;
+  --section-prefix: '';
+  --btn-text: '[ + NEW TASK ]';
+}
+
+/* ─── MERIDIAN: Observatory ─── */
+[data-theme="meridian"] {
+  --bg-void: #0A1628;
+  --bg-surface: #0F1D32;
+  --bg-elevated: #152540;
+  --bg-input: #0D1829;
+  --bg-terminal: #0B1420;
+
+  --accent: #F5A623;
+  --accent-dim: #D4901E;
+  --accent-glow: rgba(245, 166, 35, 0.12);
+  --accent-muted: #2A1F0A;
+
+  --text-primary: #D4D4DC;
+  --text-secondary: #8891A0;
+  --text-ghost: #4A5568;
+  --text-inverse: #0A1628;
+
+  --status-pending: #F5A623;
+  --status-running: #48BB78;
+  --status-done: #63B3ED;
+  --status-failed: #FC8181;
+  --status-idle: #4A5568;
+
+  --border: #1E2D45;
+  --border-active: #F5A623;
+  --border-hard: #263550;
+
+  --radius: 8px;
+  --radius-badge: 8px;
+  --border-width: 1px;
+  --shadow-x: 0px;
+  --shadow-y: 2px;
+  --shadow-color: rgba(0, 0, 0, 0.2);
+
+  --font-display: 'Playfair Display', serif;
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+
+  --card-bg: #0F1D32;
+  --card-border: #1E2D45;
+  --card-hover-border: #263550;
+  --header-bg: #0F1D32;
+  --scrollbar-thumb: #263550;
+  --scrollbar-thumb-hover: #F5A623;
+
+  --heading-transform: none;
+  --heading-spacing: 0.02em;
+  --section-prefix: '';
+  --btn-text: '+ New Task';
+}
+
+/* ─── Base Reset ─── */
 *,
 *::before,
 *::after {
@@ -30,26 +172,11 @@
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: radial-gradient(
-      ellipse at 20% 50%,
-      rgba(168, 85, 247, 0.08) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 80% 20%,
-      rgba(6, 182, 212, 0.06) 0%,
-      transparent 50%
-    ),
-    radial-gradient(
-      ellipse at 50% 80%,
-      rgba(236, 72, 153, 0.04) 0%,
-      transparent 50%
-    ),
-    var(--bg-deepest);
+  font-family: var(--font-body);
+  background: var(--bg-void);
   color: var(--text-primary);
   min-height: 100vh;
-  background-attachment: fixed;
+  transition: background 0.3s, color 0.3s;
 }
 
 /* ─── Scrollbar ─── */
@@ -60,80 +187,116 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, var(--accent-purple), var(--accent-cyan));
-  border-radius: 3px;
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* ─── Animations ─── */
 @keyframes fadeSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes glowPulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.6;
-    transform: scale(0.9);
-  }
-}
-
-@keyframes gradientShift {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-@keyframes counterPop {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.15);
-  }
-  100% {
-    transform: scale(1);
-  }
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 @keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes counterSlide {
+  0% { transform: translateY(100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
 
 .animate-entrance {
-  animation: fadeSlideUp 0.5s ease both;
+  animation: fadeSlideUp 0.4s ease both;
 }
 
 .counter-pop {
-  animation: counterPop 0.35s ease;
+  animation: counterSlide 0.2s ease-out;
+}
+
+/* ─── SIGNAL-specific: Corner Brackets ─── */
+[data-theme="signal"] .hud-card {
+  position: relative;
+  border: none !important;
+  background:
+    linear-gradient(var(--border-hard), var(--border-hard)) 0 0 / 20px 2px no-repeat,
+    linear-gradient(var(--border-hard), var(--border-hard)) 0 0 / 2px 20px no-repeat,
+    linear-gradient(var(--border-hard), var(--border-hard)) 100% 0 / 20px 2px no-repeat,
+    linear-gradient(var(--border-hard), var(--border-hard)) 100% 0 / 2px 20px no-repeat,
+    linear-gradient(var(--border-hard), var(--border-hard)) 0 100% / 20px 2px no-repeat,
+    linear-gradient(var(--border-hard), var(--border-hard)) 0 100% / 2px 20px no-repeat,
+    linear-gradient(var(--border-hard), var(--border-hard)) 100% 100% / 20px 2px no-repeat,
+    linear-gradient(var(--border-hard), var(--border-hard)) 100% 100% / 2px 20px no-repeat,
+    var(--card-bg) !important;
+  transition: background 0.15s;
+}
+[data-theme="signal"] .hud-card:hover {
+  background:
+    linear-gradient(var(--accent), var(--accent)) 0 0 / 20px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 0 0 / 2px 20px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 100% 0 / 20px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 100% 0 / 2px 20px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 0 100% / 20px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 0 100% / 2px 20px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 100% 100% / 20px 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) 100% 100% / 2px 20px no-repeat,
+    var(--card-bg) !important;
+}
+
+/* ─── FORGE-specific: Offset Shadows ─── */
+[data-theme="forge"] .hud-card {
+  box-shadow: var(--shadow-x) var(--shadow-y) 0px var(--shadow-color) !important;
+  transition: transform 0.1s, box-shadow 0.1s !important;
+}
+[data-theme="forge"] .hud-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--shadow-color) !important;
+}
+[data-theme="forge"] .hud-card:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px var(--shadow-color) !important;
+}
+
+/* ─── MERIDIAN-specific: Soft Depth ─── */
+[data-theme="meridian"] .hud-card {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 2px 8px rgba(0,0,0,0.2);
+}
+[data-theme="meridian"] .hud-card:hover {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 16px rgba(0,0,0,0.3);
+}
+
+/* ─── Scanline overlay (SIGNAL only) ─── */
+[data-theme="signal"] .scanline-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
 }
 
 /* ─── Responsive ─── */
@@ -151,5 +314,13 @@ body {
   }
   header {
     padding: 0 16px !important;
+  }
+}
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

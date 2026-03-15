@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApi } from './hooks/useApi';
+import { useTheme } from './ThemeContext';
 import Header from './components/Header';
 import StatCard from './components/StatCard';
 import TaskCard from './components/TaskCard';
@@ -8,21 +9,27 @@ import LogViewer from './components/LogViewer';
 import TaskPanel from './components/TaskPanel';
 import Footer from './components/Footer';
 
-const gridStyle = {
-  padding: '24px 32px 48px',
-  maxWidth: 1440,
-  margin: '0 auto',
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, 1fr)',
-  gap: 20,
-};
-
 export default function App() {
   const { data, logs, submitTask } = useApi(5000);
+  const { theme } = useTheme();
   const [panelOpen, setPanelOpen] = useState(false);
+
+  const isSignal = theme === 'signal';
+
+  const gridStyle = {
+    padding: '24px 32px 60px',
+    maxWidth: 1400,
+    margin: '0 auto',
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: 20,
+  };
 
   return (
     <>
+      {/* Scanline overlay for SIGNAL */}
+      {isSignal && <div className="scanline-overlay" />}
+
       <Header online={data.online} onNewTask={() => setPanelOpen(true)} />
 
       <main style={gridStyle}>
@@ -35,7 +42,7 @@ export default function App() {
         {/* Task cards - 2 columns */}
         <div style={{ gridColumn: 'span 2' }}>
           <TaskCard
-            title="Pending Tasks"
+            title={isSignal ? 'MISSION QUEUE' : (theme === 'meridian' ? 'Pending Tasks' : 'PENDING TASKS')}
             status="pending"
             tasks={data.pending}
             count={data.pending.length}
@@ -48,7 +55,7 @@ export default function App() {
 
         <div style={{ gridColumn: 'span 2' }}>
           <TaskCard
-            title="Recently Completed"
+            title={isSignal ? 'COMPLETED' : (theme === 'meridian' ? 'Recently Completed' : 'COMPLETED')}
             status="done"
             tasks={data.done}
             count={data.done.length}
@@ -57,7 +64,7 @@ export default function App() {
         </div>
         <div style={{ gridColumn: 'span 2' }}>
           <TaskCard
-            title="Failed"
+            title={isSignal ? 'FAILED' : (theme === 'meridian' ? 'Failed Tasks' : 'FAILED')}
             status="failed"
             tasks={data.failed}
             count={data.failed.length}
@@ -71,7 +78,7 @@ export default function App() {
         </div>
       </main>
 
-      <Footer />
+      <Footer online={data.online} />
 
       <TaskPanel
         open={panelOpen}
