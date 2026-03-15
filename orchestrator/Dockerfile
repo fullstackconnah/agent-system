@@ -16,6 +16,9 @@ RUN apt-get update && apt-get install -y \
 # Install Gemini CLI globally
 RUN npm install -g @google/gemini-cli
 
+# Trust all git directories (orchestrator commits to mounted project repos)
+RUN git config --global --add safe.directory '*'
+
 WORKDIR /app
 
 COPY package.json .
