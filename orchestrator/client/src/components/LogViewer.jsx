@@ -1,24 +1,32 @@
 import React, { useEffect, useRef } from 'react';
+import { useTheme } from '../ThemeContext';
 
-function formatLine(line) {
+function formatLine(line, theme) {
   const ts = line.match(/\[(.+?)\]/)?.[1] || '';
-  const level = line.includes('ERROR')
-    ? 'error'
-    : line.includes('WARN')
-    ? 'warn'
-    : 'info';
+  const isError = line.includes('ERROR');
+  const isWarn = line.includes('WARN');
+  const level = isError ? 'error' : isWarn ? 'warn' : 'info';
+
+  const isMeridian = theme === 'meridian';
 
   const colorMap = {
-    info: { color: 'var(--accent-cyan)', textShadow: '0 0 8px rgba(6,182,212,0.15)' },
-    warn: { color: 'var(--status-pending)', textShadow: '0 0 8px rgba(245,158,11,0.15)' },
-    error: { color: 'var(--status-failed)', textShadow: '0 0 8px rgba(239,68,68,0.2)' },
+    info:  { color: isMeridian ? 'var(--text-secondary)' : 'var(--text-secondary)' },
+    warn:  { color: 'var(--status-pending)' },
+    error: { color: 'var(--status-failed)' },
   };
 
   return { ts, text: line.replace(/\[.+?\]\s*/, ''), style: colorMap[level] };
 }
 
 export default function LogViewer({ logs, delay = 0 }) {
+  const { theme } = useTheme();
   const outputRef = useRef(null);
+
+  const isSignal = theme === 'signal';
+  const isForge = theme === 'forge';
+  const isMeridian = theme === 'meridian';
+
+  const sectionPrefix = isSignal ? '> ' : (isMeridian ? '◈ ' : '');
 
   useEffect(() => {
     if (outputRef.current) {
@@ -28,84 +36,89 @@ export default function LogViewer({ logs, delay = 0 }) {
 
   return (
     <div
-      className="animate-entrance"
+      className="animate-entrance hud-card"
       style={{
-        background: 'var(--glass-bg)',
-        backdropFilter: 'var(--glass-blur)',
-        WebkitBackdropFilter: 'var(--glass-blur)',
-        border: '1px solid var(--border)',
-        borderRadius: 'var(--radius-card)',
+        background: 'var(--card-bg)',
+        border: `var(--border-width) solid var(--card-border)`,
+        borderRadius: 'var(--radius)',
         overflow: 'hidden',
         position: 'relative',
         animationDelay: `${delay}s`,
       }}
     >
-      {/* Gradient top border */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0,
-          height: 2,
-          background: 'linear-gradient(90deg, var(--accent-purple), var(--accent-cyan), var(--accent-pink))',
-          opacity: 0.6,
-        }}
-      />
-
-      {/* Terminal header */}
-      <div
-        style={{
-          padding: '14px 20px',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <div style={{ display: 'flex', gap: 6 }}>
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} />
-          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-        </div>
-        <span
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: 'var(--text-muted)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            fontFamily: "'JetBrains Mono', monospace",
-          }}
-        >
-          Terminal
+      {/* Header */}
+      <div style={{
+        padding: '14px 20px',
+        borderBottom: '1px solid var(--border)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <span style={{
+          fontSize: isMeridian ? 16 : 13,
+          fontWeight: isMeridian ? 600 : 700,
+          textTransform: isMeridian ? 'none' : 'uppercase',
+          letterSpacing: isMeridian ? '0.02em' : '0.08em',
+          color: 'var(--text-secondary)',
+          fontFamily: 'var(--font-heading)',
+        }}>
+          <span style={{ color: 'var(--accent)' }}>{sectionPrefix}</span>
+          {isMeridian ? 'System Log' : 'SYSTEM LOG'}
         </span>
-        <span />
+        <span style={{
+          fontSize: 11,
+          color: 'var(--text-ghost)',
+          fontFamily: 'var(--font-data)',
+        }}>
+          {logs.length} lines
+        </span>
       </div>
 
       {/* Log output */}
       <div
         ref={outputRef}
         style={{
-          fontFamily: "'JetBrains Mono', monospace",
+          fontFamily: 'var(--font-data)',
           fontSize: 12,
-          lineHeight: 1.7,
+          lineHeight: 1.6,
           padding: '16px 20px',
-          height: 320,
+          height: 360,
           overflowY: 'auto',
-          background: 'rgba(8, 8, 14, 0.6)',
+          background: isForge ? 'var(--bg-surface)' : 'var(--bg-terminal)',
           whiteSpace: 'pre-wrap',
           wordBreak: 'break-all',
         }}
       >
-        {logs.map((line, i) => {
-          const { ts, text, style } = formatLine(line);
-          return (
-            <span key={i}>
-              <span style={{ color: '#3a3a50', marginRight: 8 }}>{ts}</span>
-              <span style={style}>{text}</span>
-              {'\n'}
-            </span>
-          );
-        })}
+        {logs.length === 0 ? (
+          <span style={{ color: 'var(--text-ghost)' }}>
+            {isSignal ? (
+              <>
+                <span style={{ color: 'var(--accent)' }}>{'>'} </span>
+                Awaiting log output
+                <span style={{ animation: 'cursorBlink 1s step-end infinite' }}>_</span>
+              </>
+            ) : (
+              'Awaiting log output...'
+            )}
+          </span>
+        ) : (
+          logs.map((line, i) => {
+            const { ts, text, style } = formatLine(line, theme);
+            return (
+              <span key={i}>
+                <span style={{
+                  color: isMeridian ? 'var(--accent)' : 'var(--text-ghost)',
+                  marginRight: 8,
+                  opacity: isMeridian ? 0.7 : 1,
+                }}>
+                  {ts}
+                </span>
+                <span style={style}>{text}</span>
+                {'\n'}
+              </span>
+            );
+          })
+        )}
       </div>
     </div>
   );

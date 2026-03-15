@@ -1,133 +1,270 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useTheme, THEMES } from '../ThemeContext';
 
-const styles = {
-  header: {
+export default function Header({ online, onNewTask }) {
+  const { theme, setTheme } = useTheme();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const isSignal = theme === 'signal';
+  const isForge = theme === 'forge';
+  const isMeridian = theme === 'meridian';
+
+  const logoMark = isMeridian ? '◈' : '■';
+  const logoMarkColor = 'var(--accent)';
+  const subtitleText = isMeridian ? 'Observatory' : 'Agent Orchestrator';
+
+  const headerStyle = {
     position: 'sticky',
     top: 0,
     zIndex: 100,
-    background: 'rgba(6, 6, 11, 0.7)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderBottom: '1px solid var(--border)',
+    background: 'var(--header-bg)',
+    borderBottom: `var(--border-width) solid var(--border)`,
     padding: '0 32px',
-    height: 64,
+    height: 48,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  logo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-  },
-  logoTitle: {
-    fontSize: 20,
-    fontWeight: 800,
-    letterSpacing: '0.12em',
-    background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))',
-    backgroundSize: '200% 200%',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    animation: 'gradientShift 4s ease infinite',
-  },
-  logoSub: {
-    fontSize: 10,
-    fontWeight: 500,
-    color: 'var(--text-muted)',
-    letterSpacing: '0.16em',
-    textTransform: 'uppercase',
-  },
-  center: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-  },
-  statusDot: {
+    transition: 'background 0.3s',
+  };
+
+  if (isForge) {
+    headerStyle.boxShadow = '0 3px 0 var(--shadow-color)';
+  }
+
+  const dotStyle = {
     width: 8,
     height: 8,
-    borderRadius: '50%',
-    animation: 'glowPulse 2s ease-in-out infinite',
-    transition: 'background 0.4s, box-shadow 0.4s',
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: 500,
-    color: 'var(--text-muted)',
-  },
-  btn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-cyan))',
-    border: 'none',
-    color: '#fff',
-    fontFamily: "'Inter', sans-serif",
-    fontSize: 13,
-    fontWeight: 600,
-    padding: '10px 20px',
-    borderRadius: 'var(--radius-btn)',
-    cursor: 'pointer',
-    transition: 'transform 0.15s, box-shadow 0.3s',
-    boxShadow: '0 2px 12px rgba(168,85,247,0.25)',
-  },
-  plus: {
-    fontSize: 18,
-    fontWeight: 300,
-    lineHeight: 1,
-  },
-};
+    borderRadius: isSignal ? 0 : '50%',
+    background: online ? 'var(--status-running)' : 'var(--status-failed)',
+    animation: online ? 'pulse 2s ease-in-out infinite' : 'none',
+    display: 'inline-block',
+    flexShrink: 0,
+  };
 
-export default function Header({ online, onNewTask }) {
-  const dotStyle = online
-    ? {
-        ...styles.statusDot,
-        background: 'var(--status-done)',
-        boxShadow: '0 0 6px var(--status-done), 0 0 12px rgba(16,185,129,0.3)',
-      }
-    : {
-        ...styles.statusDot,
-        background: 'var(--status-failed)',
-        boxShadow: '0 0 6px var(--status-failed), 0 0 12px rgba(239,68,68,0.3)',
-      };
+  if (isMeridian && online) {
+    dotStyle.boxShadow = '0 0 6px rgba(245, 166, 35, 0.4)';
+  }
 
   return (
-    <header style={styles.header}>
-      <div style={styles.logo}>
-        <svg width="36" height="36" viewBox="0 0 100 100" style={{ filter: 'drop-shadow(0 0 8px rgba(168,85,247,0.4))' }}>
-          <defs>
-            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#a855f7" />
-              <stop offset="100%" stopColor="#06b6d4" />
-            </linearGradient>
-          </defs>
-          <polygon points="50,3 93,25 93,75 50,97 7,75 7,25" fill="url(#logoGrad)" stroke="url(#logoGrad)" strokeWidth="1" />
-        </svg>
+    <header style={headerStyle}>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{
+          fontSize: 14,
+          color: logoMarkColor,
+          fontFamily: 'var(--font-data)',
+        }}>
+          {logoMark}
+        </span>
         <div>
-          <div style={styles.logoTitle}>NEXUS</div>
-          <div style={styles.logoSub}>Agent Orchestrator</div>
+          <span style={{
+            fontSize: 16,
+            fontWeight: isMeridian ? 500 : 600,
+            letterSpacing: '0.12em',
+            fontFamily: 'var(--font-heading)',
+            color: 'var(--text-primary)',
+            textTransform: isSignal || isForge ? 'uppercase' : 'none',
+          }}>
+            NEXUS
+          </span>
+          <span style={{
+            fontSize: 9,
+            fontWeight: 400,
+            color: 'var(--text-ghost)',
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            marginLeft: 8,
+            fontFamily: 'var(--font-body)',
+          }}>
+            {subtitleText}
+          </span>
         </div>
       </div>
 
-      <div style={styles.center}>
-        <span style={dotStyle} />
-        <span style={styles.statusText}>{online ? 'Online' : 'Offline'}</span>
+      {/* Center: Status + Theme */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        {/* Status */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={dotStyle} />
+          <span style={{
+            fontSize: 12,
+            fontWeight: 500,
+            fontFamily: 'var(--font-data)',
+            color: 'var(--text-secondary)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
+            {online ? (isSignal ? 'SYS:ONLINE' : 'Online') : (isSignal ? 'SYS:OFFLINE' : 'Offline')}
+          </span>
+        </div>
+
+        {/* Theme Selector */}
+        <div ref={dropdownRef} style={{ position: 'relative' }}>
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            style={{
+              background: 'var(--bg-elevated)',
+              border: `var(--border-width) solid var(--border)`,
+              borderRadius: 'var(--radius)',
+              color: 'var(--text-secondary)',
+              fontFamily: 'var(--font-data)',
+              fontSize: 11,
+              padding: '4px 12px',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              transition: 'border-color 0.15s, color 0.15s',
+              boxShadow: isForge ? '2px 2px 0 var(--shadow-color)' : 'none',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border-active)';
+              e.currentTarget.style.color = 'var(--accent)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }}
+          >
+            {THEMES.find(t => t.id === theme)?.label || 'THEME'}
+          </button>
+
+          {dropdownOpen && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginTop: 6,
+              background: 'var(--bg-surface)',
+              border: `var(--border-width) solid var(--border)`,
+              borderRadius: 'var(--radius)',
+              padding: 4,
+              zIndex: 200,
+              minWidth: 160,
+              boxShadow: isForge
+                ? '4px 4px 0 var(--shadow-color)'
+                : '0 8px 24px rgba(0,0,0,0.3)',
+              animation: 'fadeIn 0.15s ease',
+            }}>
+              {THEMES.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => { setTheme(t.id); setDropdownOpen(false); }}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: 'none',
+                    borderRadius: 'var(--radius)',
+                    background: theme === t.id ? 'var(--accent-glow)' : 'transparent',
+                    color: theme === t.id ? 'var(--accent)' : 'var(--text-secondary)',
+                    fontFamily: 'var(--font-data)',
+                    fontSize: 11,
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    transition: 'background 0.1s, color 0.1s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (theme !== t.id) {
+                      e.currentTarget.style.background = 'var(--bg-elevated)';
+                      e.currentTarget.style.color = 'var(--text-primary)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (theme !== t.id) {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = 'var(--text-secondary)';
+                    }
+                  }}
+                >
+                  <span style={{ fontWeight: 600 }}>{t.label}</span>
+                  <span style={{
+                    marginLeft: 8,
+                    fontSize: 10,
+                    opacity: 0.6,
+                    fontFamily: 'var(--font-body)',
+                    textTransform: 'none',
+                    letterSpacing: 'normal',
+                  }}>
+                    {t.description}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* New Task */}
       <button
-        style={styles.btn}
         onClick={onNewTask}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          background: isForge ? 'var(--accent)' : (isMeridian ? 'var(--accent)' : 'transparent'),
+          border: `var(--border-width) solid ${isSignal ? 'var(--accent)' : 'var(--border)'}`,
+          borderRadius: 'var(--radius)',
+          color: isSignal ? 'var(--accent)' : 'var(--text-inverse)',
+          fontFamily: 'var(--font-heading)',
+          fontSize: 12,
+          fontWeight: 600,
+          padding: '8px 16px',
+          cursor: 'pointer',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          transition: 'all 0.1s',
+          boxShadow: isForge ? '3px 3px 0 var(--shadow-color)' : 'none',
+        }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.03)';
-          e.currentTarget.style.boxShadow = '0 4px 20px rgba(168,85,247,0.4)';
+          if (isSignal) {
+            e.currentTarget.style.background = 'var(--accent)';
+            e.currentTarget.style.color = 'var(--text-inverse)';
+          } else if (isForge) {
+            e.currentTarget.style.transform = 'translate(-1px, -1px)';
+            e.currentTarget.style.boxShadow = '4px 4px 0 var(--shadow-color)';
+          } else {
+            e.currentTarget.style.background = 'var(--accent-dim)';
+          }
         }}
         onMouseLeave={(e) => {
-          e.currentTarget.style.transform = '';
-          e.currentTarget.style.boxShadow = '0 2px 12px rgba(168,85,247,0.25)';
+          if (isSignal) {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--accent)';
+          } else if (isForge) {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '3px 3px 0 var(--shadow-color)';
+          } else {
+            e.currentTarget.style.background = 'var(--accent)';
+          }
+        }}
+        onMouseDown={(e) => {
+          if (isForge) {
+            e.currentTarget.style.transform = 'translate(3px, 3px)';
+            e.currentTarget.style.boxShadow = 'none';
+          }
+        }}
+        onMouseUp={(e) => {
+          if (isForge) {
+            e.currentTarget.style.transform = 'translate(-1px, -1px)';
+            e.currentTarget.style.boxShadow = '4px 4px 0 var(--shadow-color)';
+          }
         }}
       >
-        <span style={styles.plus}>+</span>
-        <span>New Task</span>
+        {isSignal ? '[ + NEW TASK ]' : isMeridian ? '+ New Task' : '[ + NEW TASK ]'}
       </button>
     </header>
   );
