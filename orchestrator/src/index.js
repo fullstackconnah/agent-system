@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import Docker from "dockerode";
 import { runTask } from "./runner.js";
-import { getPendingTasks, getTasksByStatus } from "./vault.js";
+import { getPendingTasks, getTasksByStatus, createTaskFile } from "./vault.js";
 import { logger } from "./logger.js";
 import cron from "node-cron";
 
@@ -34,9 +34,19 @@ app.post("/run", async (req, res) => {
   if (!task || !project) {
     return res.status(400).json({ error: "task and project are required" });
   }
-  logger.info(`Manual task triggered: ${title || task}`);
+  const taskTitle = title || task;
+  logger.info(`Manual task triggered: ${taskTitle}`);
+
+  // Create a vault task file so the dashboard can track it
+  const filepath = await createTaskFile({
+    title: taskTitle,
+    body: task,
+    priority,
+    project,
+  });
+
   res.json({ status: "accepted", message: "Task queued" });
-  runTask({ task, project, title: title || task, priority }).catch(err =>
+  runTask({ filepath, body: task, project, title: taskTitle, priority }).catch(err =>
     logger.error(`Task failed: ${err.message}`)
   );
 });
@@ -52,7 +62,7 @@ app.get("/containers", async (req, res) => {
   try {
     const containers = await docker.listContainers();
     const agents = containers
-      .filter(c => c.Image === "claude-agent:latest")
+      .filter(c => c.Image.includes("claude-agent"))
       .map(c => ({
         id: c.Id.slice(0, 12),
         name: c.Names[0]?.replace("/", ""),
