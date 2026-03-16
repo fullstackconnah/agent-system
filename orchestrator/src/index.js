@@ -4,6 +4,7 @@ import { createReadStream } from "fs";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execFileSync } from "child_process";
 import Docker from "dockerode";
 import { runTask } from "./runner.js";
 import { getPendingTasks, getTasksByStatus, createTaskFile } from "./vault.js";
@@ -87,6 +88,42 @@ app.get("/logs", async (req, res) => {
     res.json({ lines: slice, nextOffset: offset + slice.length });
   } catch {
     res.json({ lines: [], nextOffset: 0 });
+  }
+});
+
+// --- List accessible git repositories ---
+app.get("/repositories", async (req, res) => {
+  const projectsPath = process.env.PROJECTS_PATH || "/projects";
+  try {
+    const entries = await fs.readdir(projectsPath, { withFileTypes: true });
+    const repos = [];
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const repoPath = path.join(projectsPath, entry.name);
+      const gitDir = path.join(repoPath, ".git");
+      try {
+        await fs.access(gitDir);
+      } catch {
+        continue; // not a git repo
+      }
+      const git = (args) => {
+        try {
+          return execFileSync("git", args, { cwd: repoPath, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+        } catch {
+          return null;
+        }
+      };
+      repos.push({
+        name: entry.name,
+        remote: git(["remote", "get-url", "origin"]),
+        branch: git(["branch", "--show-current"]),
+        lastCommit: git(["log", "-1", "--pretty=format:%s"]),
+        lastCommitTime: git(["log", "-1", "--pretty=format:%cr"]),
+      });
+    }
+    res.json(repos);
+  } catch {
+    res.json([]);
   }
 });
 

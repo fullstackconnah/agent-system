@@ -13,6 +13,7 @@ export function useApi(interval = 5000) {
     done: [],
     failed: [],
     containers: [],
+    repositories: [],
     online: false,
   });
   const [logs, setLogs] = useState([]);
@@ -20,16 +21,17 @@ export function useApi(interval = 5000) {
 
   const refresh = useCallback(async () => {
     try {
-      const [pending, inProgress, done, failed, containers] =
+      const [pending, inProgress, done, failed, containers, repositories] =
         await Promise.all([
           fetchJSON('/tasks/pending'),
           fetchJSON('/tasks/inProgress'),
           fetchJSON('/tasks/done'),
           fetchJSON('/tasks/failed'),
           fetchJSON('/containers'),
+          fetchJSON('/repositories'),
         ]);
 
-      setData({ pending, inProgress, done, failed, containers, online: true });
+      setData({ pending, inProgress, done, failed, containers, repositories, online: true });
     } catch {
       setData((prev) => ({ ...prev, online: false }));
     }
