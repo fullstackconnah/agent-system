@@ -46,13 +46,13 @@ describe('useApi', () => {
     const containers = [{ id: 'abc123', name: 'agent-1', image: 'claude-agent:latest', status: 'running' }];
 
     global.fetch = mockFetch({
-      '/tasks/pending': pending,
-      '/tasks/inProgress': [],
-      '/tasks/done': done,
-      '/tasks/failed': [],
-      '/containers': containers,
-      '/health': { status: 'ok' },
-      '/logs': { lines: ['[2024-01-01] INFO: test log'], nextOffset: 1 },
+      '/api/tasks?status=pending': pending,
+      '/api/tasks?status=in_progress': [],
+      '/api/tasks?status=done': done,
+      '/api/tasks?status=failed': [],
+      '/api/containers': containers,
+      '/api/repositories': [],
+      '/api/logs': { lines: ['[2024-01-01] INFO: test log'], nextOffset: 1 },
     });
 
     const { result } = renderHook(() => useApi(60000));
@@ -65,6 +65,8 @@ describe('useApi', () => {
     expect(result.current.data.done).toEqual(done);
     expect(result.current.data.containers).toEqual(containers);
     expect(result.current.logs).toEqual(['[2024-01-01] INFO: test log']);
+    // repositories field should be present
+    expect(Array.isArray(result.current.data.repositories)).toBe(true);
   });
 
   it('should set online to false when fetch fails', async () => {
@@ -81,16 +83,16 @@ describe('useApi', () => {
     expect(global.fetch).toHaveBeenCalled();
   });
 
-  it('should submit a task via POST to /run', async () => {
+  it('should submit a task via POST to /api/tasks', async () => {
     global.fetch = mockFetch({
-      '/tasks/pending': [],
-      '/tasks/inProgress': [],
-      '/tasks/done': [],
-      '/tasks/failed': [],
-      '/containers': [],
-      '/health': { status: 'ok' },
-      '/logs': { lines: [], nextOffset: 0 },
-      '/run': { status: 'accepted' },
+      '/api/tasks?status=pending': [],
+      '/api/tasks?status=in_progress': [],
+      '/api/tasks?status=done': [],
+      '/api/tasks?status=failed': [],
+      '/api/containers': [],
+      '/api/repositories': [],
+      '/api/logs': { lines: [], nextOffset: 0 },
+      '/api/tasks': { status: 'accepted' },
     });
 
     const { result } = renderHook(() => useApi(60000));
@@ -109,27 +111,27 @@ describe('useApi', () => {
     });
 
     const postCall = global.fetch.mock.calls.find(
-      (call) => call[0] === '/run' && call[1]?.method === 'POST'
+      (call) => call[0] === '/api/tasks' && call[1]?.method === 'POST'
     );
     expect(postCall).toBeTruthy();
     const postedBody = JSON.parse(postCall[1].body);
     expect(postedBody).toEqual({
-      task: 'Task description',
-      project: 'myproject',
       title: 'Test Task',
+      body: 'Task description',
+      project: 'myproject',
       priority: 'high',
     });
   });
 
   it('should accumulate logs with incremental offset', async () => {
     global.fetch = vi.fn((url) => {
-      if (url === '/logs?offset=0') {
+      if (url === '/api/logs?offset=0') {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ lines: ['log line 1'], nextOffset: 1 }),
         });
       }
-      if (url === '/logs?offset=1') {
+      if (url === '/api/logs?offset=1') {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ lines: ['log line 2'], nextOffset: 2 }),
@@ -166,12 +168,10 @@ describe('useApi', () => {
       }
       const baseUrl = url.split('?')[0];
       const responses = {
-        '/tasks/pending': [],
-        '/tasks/inProgress': [],
-        '/tasks/done': [],
-        '/tasks/failed': [],
-        '/containers': [],
-        '/logs': { lines: [], nextOffset: 0 },
+        '/api/tasks': [],
+        '/api/containers': [],
+        '/api/repositories': [],
+        '/api/logs': { lines: [], nextOffset: 0 },
       };
       return Promise.resolve({
         ok: true,
@@ -191,13 +191,13 @@ describe('useApi', () => {
 
   it('should refresh data on interval', async () => {
     global.fetch = mockFetch({
-      '/tasks/pending': [],
-      '/tasks/inProgress': [],
-      '/tasks/done': [],
-      '/tasks/failed': [],
-      '/containers': [],
-      '/health': { status: 'ok' },
-      '/logs': { lines: [], nextOffset: 0 },
+      '/api/tasks?status=pending': [],
+      '/api/tasks?status=in_progress': [],
+      '/api/tasks?status=done': [],
+      '/api/tasks?status=failed': [],
+      '/api/containers': [],
+      '/api/repositories': [],
+      '/api/logs': { lines: [], nextOffset: 0 },
     });
 
     renderHook(() => useApi(5000));
@@ -219,13 +219,13 @@ describe('useApi', () => {
 
   it('should expose a refresh function', async () => {
     global.fetch = mockFetch({
-      '/tasks/pending': [],
-      '/tasks/inProgress': [],
-      '/tasks/done': [],
-      '/tasks/failed': [],
-      '/containers': [],
-      '/health': { status: 'ok' },
-      '/logs': { lines: [], nextOffset: 0 },
+      '/api/tasks?status=pending': [],
+      '/api/tasks?status=in_progress': [],
+      '/api/tasks?status=done': [],
+      '/api/tasks?status=failed': [],
+      '/api/containers': [],
+      '/api/repositories': [],
+      '/api/logs': { lines: [], nextOffset: 0 },
     });
 
     const { result } = renderHook(() => useApi(60000));
