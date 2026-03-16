@@ -13,6 +13,7 @@ services:
       - HOST_CLAUDE_CREDS=/home/connah/.claude
       - AGENT_IMAGE=ghcr.io/fullstackconnah/claude-agent:latest
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
       - PORT=3000
     volumes:
       - /home/connah/obsidian-vault:/vault

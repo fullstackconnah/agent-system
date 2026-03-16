@@ -60,5 +60,17 @@ export function useApi(interval = 5000) {
     refresh();
   }, [refresh]);
 
-  return { data, logs, submitTask, refresh };
+  const cloneRepo = useCallback(async (url) => {
+    const res = await fetch('/repositories/clone', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) throw new Error(json.error || 'Clone failed');
+    refresh();
+    return json;
+  }, [refresh]);
+
+  return { data, logs, submitTask, cloneRepo, refresh };
 }

@@ -91,6 +91,67 @@ app.get("/logs", async (req, res) => {
   }
 });
 
+// --- List repos from linked GitHub account ---
+app.get("/repositories/github", async (req, res) => {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return res.json({ error: "GITHUB_TOKEN not configured", repos: [] });
+  try {
+    const response = await fetch("https://api.github.com/user/repos?per_page=100&sort=pushed&affiliation=owner,collaborator", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    });
+    if (!response.ok) {
+      const msg = await response.text();
+      return res.json({ error: `GitHub API error: ${response.status}`, repos: [] });
+    }
+    const data = await response.json();
+    const repos = data.map(r => ({
+      name: r.name,
+      fullName: r.full_name,
+      cloneUrl: r.clone_url,
+      description: r.description,
+      private: r.private,
+      pushedAt: r.pushed_at,
+      defaultBranch: r.default_branch,
+    }));
+    res.json({ repos });
+  } catch (err) {
+    logger.error(`GitHub repos fetch failed: ${err.message}`);
+    res.json({ error: err.message, repos: [] });
+  }
+});
+
+// --- Clone a repository into PROJECTS_PATH ---
+app.post("/repositories/clone", async (req, res) => {
+  const { url } = req.body;
+  if (!url || typeof url !== "string") {
+    return res.status(400).json({ error: "url is required" });
+  }
+  // Extract repo name from URL
+  const match = url.match(/\/([^/]+?)(?:\.git)?$/);
+  if (!match) return res.status(400).json({ error: "Could not parse repo name from URL" });
+  const name = match[1];
+  const projectsPath = process.env.PROJECTS_PATH || "/projects";
+  const destPath = path.join(projectsPath, name);
+  // Check if already cloned
+  try {
+    await fs.access(destPath);
+    return res.status(409).json({ error: `Repository '${name}' already exists` });
+  } catch {}
+  logger.info(`Cloning ${url} into ${destPath}`);
+  try {
+    execFileSync("git", ["clone", url, name], { cwd: projectsPath, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
+    logger.info(`Cloned ${name} successfully`);
+    res.json({ success: true, name });
+  } catch (err) {
+    logger.error(`Clone failed for ${url}: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // --- List accessible git repositories ---
 app.get("/repositories", async (req, res) => {
   const projectsPath = process.env.PROJECTS_PATH || "/projects";
