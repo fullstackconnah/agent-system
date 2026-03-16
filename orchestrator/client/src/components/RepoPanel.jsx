@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTheme, isForgeTheme } from '../ThemeContext';
 
 async function fetchGithubRepos() {
-  const res = await fetch('/repositories/github');
+  const res = await fetch('/api/repositories/github');
   if (!res.ok) throw new Error(res.status);
   return res.json();
 }
