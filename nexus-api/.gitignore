@@ -1,0 +1,38 @@
+## .NET gitignore
+
+# Build results
+bin/
+obj/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio files
+.vs/
+*.userprefs
+
+# Rider files
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test results
+TestResults/
+coverage/
+
+# HTTP scratch files (VS/Rider scaffolding)
+*.http

@@ -60,6 +60,53 @@ services:
     networks:
       - agent-net
 
+  nexus-api:
+    image: ghcr.io/fullstackconnah/nexus-api:latest
+    container_name: nexus-api
+    restart: unless-stopped
+    environment:
+      - VAULT_PATH=/vault
+      - PROJECTS_PATH=/projects
+      - HOST_VAULT_PATH=/home/connah/obsidian-vault
+      - HOST_PROJECTS_PATH=/home/connah/projects
+      - CLAUDE_CREDS=/claude-creds
+      - HOST_CLAUDE_CREDS=/home/connah/.claude
+      - AGENT_IMAGE=ghcr.io/fullstackconnah/claude-agent:latest
+      - ConnectionStrings__Default=Host=db;Database=nexus;Username=nexus;Password=${DB_PASSWORD}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      - /home/connah/obsidian-vault:/vault
+      - /home/connah/projects:/projects
+      - /home/connah/.claude:/claude-creds
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "3002:8080"
+    networks:
+      - agent-net
+      - npm-net
+    depends_on:
+      - db
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  db:
+    image: postgres:17-alpine
+    container_name: nexus-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=nexus
+      - POSTGRES_USER=nexus
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - agent-net
+
+volumes:
+  postgres_data:
+
 networks:
   agent-net:
     name: agent-net
