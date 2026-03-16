@@ -90,9 +90,11 @@ public record ServiceStatus
 public record ServerHealthSnapshot
 {
     public DateTime CheckedAt { get; init; }
-    public double CpuPercent { get; init; }
-    public double RamPercent { get; init; }
-    public double DiskPercent { get; init; }
+    // Short names so ASP.NET Core's default camelCase serialiser produces "cpu"/"ram"/"disk"
+    // matching the JSON API contract below.
+    public double Cpu { get; init; }
+    public double Ram { get; init; }
+    public double Disk { get; init; }
     public List<ContainerStatus> Containers { get; init; } = [];
     public List<ServiceStatus> Services { get; init; } = [];
     public int RecentErrorCount { get; init; }
