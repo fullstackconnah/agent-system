@@ -6,14 +6,16 @@ import StatCard from './components/StatCard';
 import TaskCard from './components/TaskCard';
 import ContainerCard from './components/ContainerCard';
 import RepoCard from './components/RepoCard';
+import RepoPanel from './components/RepoPanel';
 import LogViewer from './components/LogViewer';
 import TaskPanel from './components/TaskPanel';
 import Footer from './components/Footer';
 
 export default function App() {
-  const { data, logs, submitTask } = useApi(5000);
+  const { data, logs, submitTask, cloneRepo } = useApi(5000);
   const { theme } = useTheme();
   const [panelOpen, setPanelOpen] = useState(false);
+  const [repoPanelOpen, setRepoPanelOpen] = useState(false);
 
   const isSignal = theme === 'signal';
 
@@ -75,7 +77,7 @@ export default function App() {
 
         {/* Repositories - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <RepoCard repos={data.repositories} delay={0.48} />
+          <RepoCard repos={data.repositories} delay={0.48} onAddRepo={() => setRepoPanelOpen(true)} />
         </div>
 
         {/* Log viewer - full width */}
@@ -90,6 +92,13 @@ export default function App() {
         open={panelOpen}
         onClose={() => setPanelOpen(false)}
         onSubmit={submitTask}
+      />
+
+      <RepoPanel
+        open={repoPanelOpen}
+        onClose={() => setRepoPanelOpen(false)}
+        onClone={cloneRepo}
+        localRepos={data.repositories}
       />
     </>
   );

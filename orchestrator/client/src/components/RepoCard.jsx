@@ -87,7 +87,7 @@ function RepoItem({ repo, theme }) {
   );
 }
 
-export default function RepoCard({ repos = [], delay = 0 }) {
+export default function RepoCard({ repos = [], delay = 0, onAddRepo }) {
   const { theme } = useTheme();
   const isSignal = theme === 'signal';
   const isForge = isForgeTheme(theme);
@@ -135,18 +135,50 @@ export default function RepoCard({ repos = [], delay = 0 }) {
           <span style={{ color: 'var(--accent)' }}>{sectionPrefix}</span>
           {title}
         </span>
-        <span style={{
-          fontSize: 11,
-          fontWeight: 600,
-          padding: '2px 10px',
-          borderRadius: 'var(--radius-badge)',
-          background: 'var(--accent-glow)',
-          color: 'var(--accent)',
-          border: isForge ? 'var(--border-width) solid var(--border)' : '1px solid var(--accent-muted)',
-          fontFamily: 'var(--font-data)',
-        }}>
-          {repos.length}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{
+            fontSize: 11,
+            fontWeight: 600,
+            padding: '2px 10px',
+            borderRadius: 'var(--radius-badge)',
+            background: 'var(--accent-glow)',
+            color: 'var(--accent)',
+            border: isForge ? 'var(--border-width) solid var(--border)' : '1px solid var(--accent-muted)',
+            fontFamily: 'var(--font-data)',
+          }}>
+            {repos.length}
+          </span>
+          {onAddRepo && (
+            <button
+              onClick={onAddRepo}
+              style={{
+                background: 'transparent',
+                border: `var(--border-width) solid var(--border)`,
+                borderRadius: 'var(--radius)',
+                color: 'var(--accent)',
+                fontFamily: 'var(--font-data)',
+                fontSize: 11,
+                fontWeight: 600,
+                padding: '2px 10px',
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                transition: 'all 0.1s',
+                ...(isForge ? { boxShadow: '2px 2px 0 var(--shadow-color)' } : {}),
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--accent-glow)';
+                e.currentTarget.style.borderColor = 'var(--accent)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.borderColor = 'var(--border)';
+              }}
+            >
+              {isSignal ? '[ + ]' : '+ Add'}
+            </button>
+          )}
+        </div>
       </div>
 
       <div style={{ padding: '8px 20px 16px' }}>
