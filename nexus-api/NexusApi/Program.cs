@@ -39,8 +39,8 @@ builder.Services.AddDbContext<NexusDbContext>(o => o.UseNpgsql(connStr));
 builder.Services.AddSingleton<IDockerService, DockerService>();
 builder.Services.AddScoped<IVaultService, VaultService>();
 builder.Services.AddHttpClient();  // registers IHttpClientFactory for general use (e.g. RepositoriesController)
-// TODO: Task 10 — builder.Services.AddHttpClient<IMarketplaceService, MarketplaceService>();
-// TODO: Task 11 — builder.Services.AddScoped<IPluginService, PluginService>();
+builder.Services.AddHttpClient<IMarketplaceService, MarketplaceService>();
+builder.Services.AddScoped<IPluginService, PluginService>();
 builder.Services.AddScoped<TaskRunnerService>();
 builder.Services.AddHostedService<TaskSchedulerService>();
 
