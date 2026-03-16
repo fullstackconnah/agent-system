@@ -206,7 +206,7 @@ namespace NexusApi.Data.Migrations
                 table: "tasks",
                 column: "Status");
 
-            migrationBuilder.Sql("CREATE INDEX log_entries_metadata_gin ON log_entries USING gin (metadata);");
+            migrationBuilder.Sql("CREATE INDEX log_entries_metadata_gin ON log_entries USING gin (\"Metadata\");");
         }
 
         /// <inheritdoc />
