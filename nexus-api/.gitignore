@@ -33,3 +33,6 @@ Thumbs.db
 # Test results
 TestResults/
 coverage/
+
+# HTTP scratch files (VS/Rider scaffolding)
+*.http
