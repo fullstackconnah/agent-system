@@ -23,12 +23,12 @@ export function useApi(interval = 5000) {
     try {
       const [pending, inProgress, done, failed, containers, repositories] =
         await Promise.all([
-          fetchJSON('/tasks/pending'),
-          fetchJSON('/tasks/inProgress'),
-          fetchJSON('/tasks/done'),
-          fetchJSON('/tasks/failed'),
-          fetchJSON('/containers'),
-          fetchJSON('/repositories'),
+          fetchJSON('/api/tasks?status=pending'),
+          fetchJSON('/api/tasks?status=in_progress'),
+          fetchJSON('/api/tasks?status=done'),
+          fetchJSON('/api/tasks?status=failed'),
+          fetchJSON('/api/containers'),
+          fetchJSON('/api/repositories'),
         ]);
 
       setData({ pending, inProgress, done, failed, containers, repositories, online: true });
@@ -37,7 +37,7 @@ export function useApi(interval = 5000) {
     }
 
     try {
-      const result = await fetchJSON(`/logs?offset=${logOffset.current}`);
+      const result = await fetchJSON(`/api/logs?offset=${logOffset.current}`);
       if (result.lines?.length) {
         setLogs((prev) => [...prev, ...result.lines]);
         logOffset.current = result.nextOffset;
@@ -52,16 +52,16 @@ export function useApi(interval = 5000) {
   }, [refresh, interval]);
 
   const submitTask = useCallback(async ({ title, project, priority, body }) => {
-    await fetch('/run', {
+    await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ task: body, project, title, priority }),
+      body: JSON.stringify({ title, body, project, priority }),
     });
     refresh();
   }, [refresh]);
 
   const cloneRepo = useCallback(async (url) => {
-    const res = await fetch('/repositories/clone', {
+    const res = await fetch('/api/repositories/clone', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url }),

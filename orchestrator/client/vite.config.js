@@ -33,11 +33,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/health': 'http://localhost:3000',
-      '/run': 'http://localhost:3000',
-      '/tasks': 'http://localhost:3000',
-      '/containers': 'http://localhost:3000',
-      '/logs': 'http://localhost:3000',
-    },
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
   },
 });
