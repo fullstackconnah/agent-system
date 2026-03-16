@@ -5,6 +5,7 @@ import Header from './components/Header';
 import StatCard from './components/StatCard';
 import TaskCard from './components/TaskCard';
 import ContainerCard from './components/ContainerCard';
+import RepoCard from './components/RepoCard';
 import LogViewer from './components/LogViewer';
 import TaskPanel from './components/TaskPanel';
 import Footer from './components/Footer';
@@ -72,9 +73,14 @@ export default function App() {
           />
         </div>
 
+        {/* Repositories - full width */}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <RepoCard repos={data.repositories} delay={0.48} />
+        </div>
+
         {/* Log viewer - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <LogViewer logs={logs} delay={0.48} />
+          <LogViewer logs={logs} delay={0.54} />
         </div>
       </main>
 
