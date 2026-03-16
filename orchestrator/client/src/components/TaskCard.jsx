@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '../ThemeContext';
+import { useTheme, isForgeTheme } from '../ThemeContext';
 
 const priorityColors = {
   high: 'var(--status-failed)',
@@ -20,7 +20,7 @@ function TaskItem({ task, status, theme }) {
     .replace('.md', '') || task.id || 'Task';
 
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
   const accentColor = statusColors[status];
 
@@ -128,7 +128,7 @@ function TaskItem({ task, status, theme }) {
 export default function TaskCard({ title, status, tasks, count, delay = 0 }) {
   const { theme } = useTheme();
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
   const accentColor = statusColors[status];
 

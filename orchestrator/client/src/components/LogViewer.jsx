@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useTheme } from '../ThemeContext';
+import { useTheme, isForgeTheme } from '../ThemeContext';
 
 function formatLine(line, theme) {
   const ts = line.match(/\[(.+?)\]/)?.[1] || '';
@@ -23,7 +23,7 @@ export default function LogViewer({ logs, delay = 0 }) {
   const outputRef = useRef(null);
 
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
 
   const sectionPrefix = isSignal ? '> ' : (isMeridian ? '◈ ' : '');

@@ -1,9 +1,9 @@
 import React from 'react';
-import { useTheme } from '../ThemeContext';
+import { useTheme, isForgeTheme } from '../ThemeContext';
 
 function ContainerItem({ container, theme }) {
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
 
   return (
@@ -69,7 +69,7 @@ function ContainerItem({ container, theme }) {
 export default function ContainerCard({ containers, delay = 0 }) {
   const { theme } = useTheme();
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
 
   const sectionPrefix = isSignal ? '> ' : (isMeridian ? '◈ ' : '');

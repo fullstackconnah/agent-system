@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '../ThemeContext';
+import { useTheme, isForgeTheme } from '../ThemeContext';
 
 export default function Footer({ online }) {
   const { theme } = useTheme();
   const [uptime, setUptime] = useState(0);
 
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
 
   useEffect(() => {

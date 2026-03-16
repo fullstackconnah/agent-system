@@ -5,8 +5,11 @@ const ThemeContext = createContext();
 export const THEMES = [
   { id: 'signal', label: 'SIGNAL', description: 'Tactical HUD' },
   { id: 'forge', label: 'FORGE', description: 'Neo-Brutalist' },
+  { id: 'dark-forge', label: 'DARK FORGE', description: 'Noir Brutalist' },
   { id: 'meridian', label: 'MERIDIAN', description: 'Observatory' },
 ];
+
+export const isForgeTheme = (theme) => theme === 'forge' || theme === 'dark-forge';
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
