@@ -7,11 +7,16 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Log buffer — must be created before UseSerilog so the sink can reference it
+var logBuffer = new NexusApi.Services.LogBuffer();
+builder.Services.AddSingleton(logBuffer);
+
 // Serilog
 builder.Host.UseSerilog((ctx, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .Enrich.FromLogContext()
-       .WriteTo.Console());
+       .WriteTo.Console()
+       .WriteTo.Sink(new NexusApi.Services.LogBufferSink(logBuffer)));
 
 // Options — appsettings.json section first, then env vars override (env vars win)
 builder.Services.Configure<AgentOptions>(builder.Configuration.GetSection(AgentOptions.Section));
