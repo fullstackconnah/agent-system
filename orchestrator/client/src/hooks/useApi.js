@@ -17,12 +17,11 @@ export function useApi(interval = 5000) {
     online: false,
   });
   const [logs, setLogs] = useState([]);
-  const [serverHealth, setServerHealth] = useState(null);
   const logOffset = useRef(0);
 
   const refresh = useCallback(async () => {
     try {
-      const [pending, inProgress, done, failed, containers, repositories, health] =
+      const [pending, inProgress, done, failed, containers, repositories] =
         await Promise.all([
           fetchJSON('/tasks/pending'),
           fetchJSON('/tasks/inProgress'),
@@ -30,11 +29,9 @@ export function useApi(interval = 5000) {
           fetchJSON('/tasks/failed'),
           fetchJSON('/containers'),
           fetchJSON('/repositories'),
-          fetchJSON('/health'),
         ]);
 
       setData({ pending, inProgress, done, failed, containers, repositories, online: true });
-      setServerHealth(health);
     } catch {
       setData((prev) => ({ ...prev, online: false }));
     }
@@ -75,5 +72,5 @@ export function useApi(interval = 5000) {
     return json;
   }, [refresh]);
 
-  return { data, logs, submitTask, cloneRepo, serverHealth, refresh };
+  return { data, logs, submitTask, cloneRepo, refresh };
 }

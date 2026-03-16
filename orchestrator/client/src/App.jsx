@@ -5,7 +5,6 @@ import Header from './components/Header';
 import StatCard from './components/StatCard';
 import TaskCard from './components/TaskCard';
 import ContainerCard from './components/ContainerCard';
-import ServerHealthCard from './components/ServerHealthCard';
 import RepoCard from './components/RepoCard';
 import RepoPanel from './components/RepoPanel';
 import LogViewer from './components/LogViewer';
@@ -13,7 +12,7 @@ import TaskPanel from './components/TaskPanel';
 import Footer from './components/Footer';
 
 export default function App() {
-  const { data, logs, submitTask, cloneRepo, serverHealth } = useApi(5000);
+  const { data, logs, submitTask, cloneRepo } = useApi(5000);
   const { theme } = useTheme();
   const [panelOpen, setPanelOpen] = useState(false);
   const [repoPanelOpen, setRepoPanelOpen] = useState(false);
@@ -57,18 +56,13 @@ export default function App() {
           <ContainerCard containers={data.containers} delay={0.3} />
         </div>
 
-        {/* Server Health - full width */}
-        <div style={{ gridColumn: '1 / -1' }}>
-          <ServerHealthCard serverHealth={serverHealth} delay={0.36} />
-        </div>
-
         <div style={{ gridColumn: 'span 2' }}>
           <TaskCard
             title={isSignal ? 'COMPLETED' : (theme === 'meridian' ? 'Recently Completed' : 'COMPLETED')}
             status="done"
             tasks={data.done}
             count={data.done.length}
-            delay={0.42}
+            delay={0.36}
           />
         </div>
         <div style={{ gridColumn: 'span 2' }}>
@@ -77,18 +71,18 @@ export default function App() {
             status="failed"
             tasks={data.failed}
             count={data.failed.length}
-            delay={0.48}
+            delay={0.42}
           />
         </div>
 
         {/* Repositories - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <RepoCard repos={data.repositories} delay={0.54} onAddRepo={() => setRepoPanelOpen(true)} />
+          <RepoCard repos={data.repositories} delay={0.48} onAddRepo={() => setRepoPanelOpen(true)} />
         </div>
 
         {/* Log viewer - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <LogViewer logs={logs} delay={0.60} />
+          <LogViewer logs={logs} delay={0.54} />
         </div>
       </main>
 
