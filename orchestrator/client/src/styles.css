@@ -109,40 +109,40 @@
   --btn-text: '[ + NEW TASK ]';
 }
 
-/* ─── DARK FORGE: Noir Brutalist ─── */
+/* ─── DARK FORGE: Ember Glow ─── */
 [data-theme="dark-forge"] {
   --bg-void: #0A0A0A;
   --bg-surface: #111111;
-  --bg-elevated: #1A1A1A;
+  --bg-elevated: #161616;
   --bg-input: #111111;
   --bg-terminal: #080808;
 
-  --accent: #FF5500;
-  --accent-dim: #CC4400;
-  --accent-glow: rgba(255, 85, 0, 0.15);
-  --accent-muted: #2A1100;
+  --accent: #FF8C00;
+  --accent-dim: #CC7000;
+  --accent-glow: rgba(255, 140, 0, 0.15);
+  --accent-muted: #2A1800;
 
-  --text-primary: #F5F5F5;
-  --text-secondary: #888888;
-  --text-ghost: #444444;
+  --text-primary: #F0EDE8;
+  --text-secondary: #8A7A6A;
+  --text-ghost: #3D3028;
   --text-inverse: #0A0A0A;
 
   --status-pending: #F59E0B;
   --status-running: #22C55E;
   --status-done: #60A5FA;
   --status-failed: #EF4444;
-  --status-idle: #333333;
+  --status-idle: #2A2018;
 
-  --border: #FFFFFF;
-  --border-active: #FF5500;
-  --border-hard: #FFFFFF;
+  --border: #3D2A08;
+  --border-active: #FF8C00;
+  --border-hard: #4A3210;
 
   --radius: 0px;
   --radius-badge: 999px;
   --border-width: 3px;
   --shadow-x: 4px;
   --shadow-y: 4px;
-  --shadow-color: #FFFFFF;
+  --shadow-color: #FF8C00;
 
   --font-display: 'Space Grotesk', sans-serif;
   --font-heading: 'Space Grotesk', sans-serif;
@@ -150,11 +150,11 @@
   --font-data: 'JetBrains Mono', monospace;
 
   --card-bg: #111111;
-  --card-border: #FFFFFF;
-  --card-hover-border: #FFFFFF;
+  --card-border: #3D2A08;
+  --card-hover-border: #5A3D0F;
   --header-bg: #111111;
-  --scrollbar-thumb: #333333;
-  --scrollbar-thumb-hover: #FF5500;
+  --scrollbar-thumb: #3D2A08;
+  --scrollbar-thumb-hover: #FF8C00;
 
   --heading-transform: uppercase;
   --heading-spacing: 0.08em;
