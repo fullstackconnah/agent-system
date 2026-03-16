@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useTheme } from '../ThemeContext';
+import { useTheme, isForgeTheme } from '../ThemeContext';
 
 const colorMap = {
   pending: 'var(--status-pending)',
@@ -22,7 +22,7 @@ export default function StatCard({ type, value, label, delay = 0 }) {
   const [pop, setPop] = useState(false);
 
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
 
   useEffect(() => {

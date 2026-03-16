@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useTheme, THEMES } from '../ThemeContext';
+import { useTheme, THEMES, isForgeTheme } from '../ThemeContext';
 
 export default function Header({ online, onNewTask }) {
   const { theme, setTheme } = useTheme();
@@ -17,7 +17,7 @@ export default function Header({ online, onNewTask }) {
   }, []);
 
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
 
   const logoMark = isMeridian ? '◈' : '■';

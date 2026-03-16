@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useTheme } from '../ThemeContext';
+import { useTheme, isForgeTheme } from '../ThemeContext';
 
 export default function TaskPanel({ open, onClose, onSubmit }) {
   const { theme } = useTheme();
@@ -11,7 +11,7 @@ export default function TaskPanel({ open, onClose, onSubmit }) {
   const titleRef = useRef(null);
 
   const isSignal = theme === 'signal';
-  const isForge = theme === 'forge';
+  const isForge = isForgeTheme(theme);
   const isMeridian = theme === 'meridian';
 
   useEffect(() => {

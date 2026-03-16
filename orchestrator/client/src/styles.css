@@ -109,6 +109,59 @@
   --btn-text: '[ + NEW TASK ]';
 }
 
+/* ─── DARK FORGE: Noir Brutalist ─── */
+[data-theme="dark-forge"] {
+  --bg-void: #0A0A0A;
+  --bg-surface: #111111;
+  --bg-elevated: #1A1A1A;
+  --bg-input: #111111;
+  --bg-terminal: #080808;
+
+  --accent: #FF5500;
+  --accent-dim: #CC4400;
+  --accent-glow: rgba(255, 85, 0, 0.15);
+  --accent-muted: #2A1100;
+
+  --text-primary: #F5F5F5;
+  --text-secondary: #888888;
+  --text-ghost: #444444;
+  --text-inverse: #0A0A0A;
+
+  --status-pending: #F59E0B;
+  --status-running: #22C55E;
+  --status-done: #60A5FA;
+  --status-failed: #EF4444;
+  --status-idle: #333333;
+
+  --border: #FFFFFF;
+  --border-active: #FF5500;
+  --border-hard: #FFFFFF;
+
+  --radius: 0px;
+  --radius-badge: 999px;
+  --border-width: 3px;
+  --shadow-x: 4px;
+  --shadow-y: 4px;
+  --shadow-color: #FFFFFF;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-data: 'JetBrains Mono', monospace;
+
+  --card-bg: #111111;
+  --card-border: #FFFFFF;
+  --card-hover-border: #FFFFFF;
+  --header-bg: #111111;
+  --scrollbar-thumb: #333333;
+  --scrollbar-thumb-hover: #FF5500;
+
+  --heading-transform: uppercase;
+  --heading-spacing: 0.08em;
+  --section-prefix: '';
+  --btn-text: '[ + NEW TASK ]';
+}
+
 /* ─── MERIDIAN: Observatory ─── */
 [data-theme="meridian"] {
   --bg-void: #0A1628;
@@ -262,16 +315,19 @@ body {
     var(--card-bg) !important;
 }
 
-/* ─── FORGE-specific: Offset Shadows ─── */
-[data-theme="forge"] .hud-card {
+/* ─── FORGE / DARK FORGE-specific: Offset Shadows ─── */
+[data-theme="forge"] .hud-card,
+[data-theme="dark-forge"] .hud-card {
   box-shadow: var(--shadow-x) var(--shadow-y) 0px var(--shadow-color) !important;
   transition: transform 0.1s, box-shadow 0.1s !important;
 }
-[data-theme="forge"] .hud-card:hover {
+[data-theme="forge"] .hud-card:hover,
+[data-theme="dark-forge"] .hud-card:hover {
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0px var(--shadow-color) !important;
 }
-[data-theme="forge"] .hud-card:active {
+[data-theme="forge"] .hud-card:active,
+[data-theme="dark-forge"] .hud-card:active {
   transform: translate(4px, 4px);
   box-shadow: 0px 0px 0px var(--shadow-color) !important;
 }
