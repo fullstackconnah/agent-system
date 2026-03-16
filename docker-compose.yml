@@ -1,34 +1,5 @@
 services:
 
-  orchestrator:
-    image: ghcr.io/fullstackconnah/agent-orchestrator:latest
-    container_name: agent-orchestrator
-    restart: unless-stopped
-    environment:
-      - VAULT_PATH=/vault
-      - PROJECTS_PATH=/projects
-      - CLAUDE_CREDS=/root/.claude
-      - HOST_VAULT_PATH=/home/connah/obsidian-vault
-      - HOST_PROJECTS_PATH=/home/connah/projects
-      - HOST_CLAUDE_CREDS=/home/connah/.claude
-      - AGENT_IMAGE=ghcr.io/fullstackconnah/claude-agent:latest
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
-      - PORT=3000
-    volumes:
-      - /home/connah/obsidian-vault:/vault
-      - /home/connah/projects:/projects
-      - /home/connah/.claude:/root/.claude:ro
-      - /home/connah/.gemini:/root/.gemini:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "3001:3000"
-    networks:
-      - agent-net
-      - npm-net
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-
   syncthing:
     image: syncthing/syncthing:latest
     container_name: syncthing
@@ -82,7 +53,7 @@ services:
       - /home/connah/.claude:/claude-creds
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "3002:8080"
+      - "3001:8080"
     networks:
       - agent-net
       - npm-net
