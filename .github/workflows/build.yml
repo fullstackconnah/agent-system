@@ -16,34 +16,6 @@ env:
   OWNER: ${{ github.repository_owner }}
 
 jobs:
-  build-orchestrator:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push orchestrator
-        uses: docker/build-push-action@v5
-        with:
-          context: ./orchestrator
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/agent-orchestrator:latest
-          build-args: |
-            DEPLOY_TITLE=${{ github.event.head_commit.message }}
-            DEPLOY_SHA=${{ github.sha }}
-          no-cache: true
-
   build-claude-agent:
     runs-on: ubuntu-latest
     permissions:
@@ -88,13 +60,14 @@ jobs:
       - name: Build and push nexus-api
         uses: docker/build-push-action@v5
         with:
-          context: ./nexus-api
+          context: .
+          file: ./nexus-api/Dockerfile
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.OWNER }}/nexus-api:latest
           no-cache: true
 
   deploy:
-    needs: [build-orchestrator, build-claude-agent, build-nexus-api]
+    needs: [build-claude-agent, build-nexus-api]
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Portainer redeploy
