@@ -35,7 +35,7 @@ public class TaskSchedulerService(
             var runner = scope.ServiceProvider.GetRequiredService<TaskRunnerService>();
 
             var pending = await db.Tasks
-                .Where(t => t.Status == "pending")
+                .Where(t => t.Status == "pending" && t.TaskType != "goal")
                 .OrderBy(t => t.Priority == "high" ? 0 : t.Priority == "medium" ? 1 : 2)
                 .ThenBy(t => t.CreatedAt)
                 .FirstOrDefaultAsync(ct);

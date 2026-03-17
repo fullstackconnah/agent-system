@@ -54,6 +54,7 @@ builder.Services.AddHttpClient<IDecompositionService, DecompositionService>();
 builder.Services.AddScoped<IPluginService, PluginService>();
 builder.Services.AddScoped<TaskRunnerService>();
 builder.Services.AddHostedService<TaskSchedulerService>();
+builder.Services.AddHostedService<GoalOrchestrationService>();
 
 // API
 builder.Services.AddControllers();
