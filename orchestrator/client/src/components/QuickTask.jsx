@@ -124,7 +124,7 @@ export default function QuickTask({ repos, onSubmit, delay = 0, defaultOpen = fa
 
       {/* Accordion Body */}
       <div style={{
-        maxHeight: open ? '360px' : '0',
+        maxHeight: open ? '500px' : '0',
         overflow: 'hidden',
         transition: 'max-height 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
       }}>
@@ -132,112 +132,115 @@ export default function QuickTask({ repos, onSubmit, delay = 0, defaultOpen = fa
           padding: 20,
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 14,
         }}>
-          {/* Repo selector + submit row */}
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 180 }}>
-              <label style={labelStyle}>{isMeridian ? 'Repository' : 'REPOSITORY'}</label>
-              <select
-                value={project}
-                onChange={(e) => setProject(e.target.value)}
-                style={{
-                  ...inputBase,
-                  cursor: 'pointer',
-                  appearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E")`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 12px center',
-                  paddingRight: 32,
-                }}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-              >
-                {repos.length === 0 && (
-                  <option value="" disabled>No repos cloned</option>
-                )}
-                {repos.map(r => (
-                  <option key={r.name} value={r.name}>{r.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <label style={labelStyle}>
-                {isMeridian ? 'Goal description' : 'GOAL DESCRIPTION'}
-                <span style={{ marginLeft: 8, fontWeight: 400, opacity: 0.6, textTransform: 'none', letterSpacing: 0 }}>
-                  {isSignal ? '// ctrl+enter to submit' : '· ⌘↵ to submit'}
-                </span>
-              </label>
-              <textarea
-                ref={textareaRef}
-                placeholder="Describe what needs to be done..."
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                onKeyDown={handleKeyDown}
-                rows={2}
-                style={{
-                  ...inputBase,
-                  resize: 'vertical',
-                  minHeight: 72,
-                  lineHeight: 1.6,
-                }}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-              />
-            </div>
-
-            <button
-              onClick={handleSubmit}
+          {/* Repository selector */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>{isMeridian ? 'Repository' : 'REPOSITORY'}</label>
+            <select
+              value={project}
+              onChange={(e) => setProject(e.target.value)}
               style={{
-                background: 'var(--accent)',
-                border: isForge ? 'var(--border-width) solid var(--border)' : `var(--border-width) solid var(--accent)`,
-                color: 'var(--text-inverse)',
-                fontFamily: 'var(--font-heading)',
-                fontSize: 12,
-                fontWeight: 600,
-                padding: '12px 20px',
-                borderRadius: 'var(--radius)',
+                ...inputBase,
                 cursor: 'pointer',
-                transition: 'all 0.1s',
-                textTransform: isMeridian ? 'none' : 'uppercase',
-                letterSpacing: isMeridian ? '0.02em' : '0.08em',
-                whiteSpace: 'nowrap',
-                alignSelf: 'flex-end',
-                ...(isForge ? { boxShadow: '4px 4px 0 var(--shadow-color)' } : {}),
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 12px center',
+                paddingRight: 32,
+                width: '100%',
               }}
-              onMouseEnter={(e) => {
-                if (isForge) {
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = '6px 6px 0 var(--shadow-color)';
-                } else {
-                  e.currentTarget.style.background = 'var(--accent-dim)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (isForge) {
-                  e.currentTarget.style.transform = 'none';
-                  e.currentTarget.style.boxShadow = '4px 4px 0 var(--shadow-color)';
-                } else {
-                  e.currentTarget.style.background = 'var(--accent)';
-                }
-              }}
-              onMouseDown={(e) => {
-                if (isForge) {
-                  e.currentTarget.style.transform = 'translate(4px, 4px)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }
-              }}
-              onMouseUp={(e) => {
-                if (isForge) {
-                  e.currentTarget.style.transform = 'translate(-2px, -2px)';
-                  e.currentTarget.style.boxShadow = '6px 6px 0 var(--shadow-color)';
-                }
-              }}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
             >
-              {submitText}
-            </button>
+              {repos.length === 0 && (
+                <option value="" disabled>No repos cloned</option>
+              )}
+              {repos.map(r => (
+                <option key={r.name} value={r.name}>{r.name}</option>
+              ))}
+            </select>
           </div>
+
+          {/* Goal description */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <label style={labelStyle}>
+              {isMeridian ? 'Goal description' : 'GOAL DESCRIPTION'}
+              <span style={{ marginLeft: 8, fontWeight: 400, opacity: 0.6, textTransform: 'none', letterSpacing: 0 }}>
+                {isSignal ? '// ctrl+enter' : '· ⌘↵'}
+              </span>
+            </label>
+            <textarea
+              ref={textareaRef}
+              placeholder="Describe what needs to be done..."
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              onKeyDown={handleKeyDown}
+              rows={3}
+              style={{
+                ...inputBase,
+                resize: 'vertical',
+                minHeight: 80,
+                lineHeight: 1.6,
+                width: '100%',
+                boxSizing: 'border-box',
+              }}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+            />
+          </div>
+
+          {/* Submit button — full width */}
+          <button
+            onClick={handleSubmit}
+            style={{
+              background: 'var(--accent)',
+              border: isForge ? 'var(--border-width) solid var(--border)' : `var(--border-width) solid var(--accent)`,
+              color: 'var(--text-inverse)',
+              fontFamily: 'var(--font-heading)',
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '12px 20px',
+              borderRadius: 'var(--radius)',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              textTransform: isMeridian ? 'none' : 'uppercase',
+              letterSpacing: isMeridian ? '0.02em' : '0.08em',
+              whiteSpace: 'nowrap',
+              width: '100%',
+              ...(isForge ? { boxShadow: '4px 4px 0 var(--shadow-color)' } : {}),
+            }}
+            onMouseEnter={(e) => {
+              if (isForge) {
+                e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                e.currentTarget.style.boxShadow = '6px 6px 0 var(--shadow-color)';
+              } else {
+                e.currentTarget.style.background = 'var(--accent-dim)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (isForge) {
+                e.currentTarget.style.transform = 'none';
+                e.currentTarget.style.boxShadow = '4px 4px 0 var(--shadow-color)';
+              } else {
+                e.currentTarget.style.background = 'var(--accent)';
+              }
+            }}
+            onMouseDown={(e) => {
+              if (isForge) {
+                e.currentTarget.style.transform = 'translate(4px, 4px)';
+                e.currentTarget.style.boxShadow = 'none';
+              }
+            }}
+            onMouseUp={(e) => {
+              if (isForge) {
+                e.currentTarget.style.transform = 'translate(-2px, -2px)';
+                e.currentTarget.style.boxShadow = '6px 6px 0 var(--shadow-color)';
+              }
+            }}
+          >
+            {submitText}
+          </button>
 
           {feedback && (
             <div style={{
