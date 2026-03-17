@@ -36,4 +36,47 @@ public class VaultService(IOptions<AgentOptions> opts) : IVaultService
         await File.WriteAllTextAsync(path, content);
         return path;
     }
+
+    public async Task WriteGoalNoteAsync(string goalId, string title, string project, string status, string? summary, IEnumerable<string> subtaskTitles)
+    {
+        var dir = Path.Combine(_vaultRoot, "AgentSystem", "goals");
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, $"{goalId}.md");
+
+        var bulletList = string.Join("\n", subtaskTitles.Select(t => $"- {t}"));
+        var summaryText = summary ?? "In progress...";
+        var now = DateTimeOffset.UtcNow.ToString("o");
+
+        var content = $"""
+            ---
+            id: {goalId}
+            title: {title}
+            project: {project}
+            status: {status}
+            updated: {now}
+            ---
+
+            # {title}
+
+            ## Subtasks
+            {bulletList}
+
+            ## Summary
+            {summaryText}
+            """;
+
+        await File.WriteAllTextAsync(path, content);
+    }
+
+    public async Task AppendProjectObservationsAsync(string project, string observations)
+    {
+        var dir = Path.Combine(_vaultRoot, "AgentSystem", "projects", project);
+        Directory.CreateDirectory(dir);
+        var path = Path.Combine(dir, "memory.md");
+
+        var now = DateTimeOffset.UtcNow.ToString("o");
+        var append = $"\n\n<!-- {now} -->\n{observations}";
+
+        await File.AppendAllTextAsync(path, append);
+    }
 }

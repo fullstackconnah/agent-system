@@ -50,6 +50,7 @@ builder.Services.AddSingleton<IDockerService, DockerService>();
 builder.Services.AddScoped<IVaultService, VaultService>();
 builder.Services.AddHttpClient();  // registers IHttpClientFactory for general use (e.g. RepositoriesController)
 builder.Services.AddHttpClient<IMarketplaceService, MarketplaceService>();
+builder.Services.AddHttpClient<IDecompositionService, DecompositionService>();
 builder.Services.AddScoped<IPluginService, PluginService>();
 builder.Services.AddScoped<TaskRunnerService>();
 builder.Services.AddHostedService<TaskSchedulerService>();
