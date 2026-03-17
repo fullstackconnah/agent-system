@@ -20,7 +20,7 @@ public class DockerService(IOptions<AgentOptions> opts, ILogger<DockerService> l
         var binds = new List<string>
         {
             $"{hostProjectPath}:/home/agent/workspace",
-            $"{_opts.HostVaultPath}:/home/agent/vault:ro",
+            $"{_opts.HostVaultPath}:/home/agent/vault",
         };
 
         var env = new List<string>();

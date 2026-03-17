@@ -43,6 +43,8 @@ services:
       - CLAUDE_CREDS=/claude-creds
       - HOST_CLAUDE_CREDS=/home/connah/.claude
       - AGENT_IMAGE=ghcr.io/fullstackconnah/claude-agent:latest
+      - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS:-3}
+      - ORCHESTRATOR_MODEL=${ORCHESTRATOR_MODEL:-claude-opus-4-6}
       - ConnectionStrings__Default=Host=db;Database=nexus;Username=nexus;Password=${DB_PASSWORD}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
