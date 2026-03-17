@@ -33,6 +33,14 @@ public class NexusDbContext(DbContextOptions<NexusDbContext> options) : DbContex
             e.Property(t => t.Status)
              .HasDefaultValue("pending")
              .HasConversion<string>();
+            e.Property(t => t.TaskType)
+             .HasDefaultValue("standalone")
+             .HasConversion<string>();
+            e.HasIndex(t => t.TaskType);
+            e.HasMany(t => t.Subtasks)
+             .WithOne(t => t.Parent)
+             .HasForeignKey(t => t.ParentTaskId)
+             .OnDelete(DeleteBehavior.Restrict);
         });
 
         // AgentRun
