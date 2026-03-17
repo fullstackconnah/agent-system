@@ -63,6 +63,7 @@ public class TasksController(NexusDbContext db, IServiceScopeFactory scopeFactor
 
     private static TaskResponse ToResponse(AgentTask t) => new(
         t.TaskId, t.ExternalId, t.Title, t.Project, t.Priority, t.Status,
-        t.VaultNotePath, t.CreatedAt, t.StartedAt, t.CompletedAt,
+        t.TaskType, t.ParentTaskId, t.VaultNotePath,
+        t.CreatedAt, t.StartedAt, t.CompletedAt,
         t.Runs.Select(r => new RunSummary(r.RunId, r.Status, r.StartedAt, r.CompletedAt)));
 }

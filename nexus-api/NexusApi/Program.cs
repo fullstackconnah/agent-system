@@ -31,6 +31,11 @@ builder.Services.Configure<AgentOptions>(opts =>
     opts.AgentImage = Environment.GetEnvironmentVariable("AGENT_IMAGE") ?? opts.AgentImage;
     opts.AnthropicApiKey = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY");
     opts.GithubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+    if (Environment.GetEnvironmentVariable("MAX_CONCURRENT_AGENTS") is { } maxAgents
+        && int.TryParse(maxAgents, out var maxAgentsInt))
+        opts.MaxConcurrentAgents = maxAgentsInt;
+    if (Environment.GetEnvironmentVariable("ORCHESTRATOR_MODEL") is { } model)
+        opts.OrchestratorModel = model;
 });
 
 // Database

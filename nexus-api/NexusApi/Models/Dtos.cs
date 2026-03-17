@@ -6,9 +6,23 @@ public record CreateTaskRequest(string Title, string Body, string Project, strin
 
 public record TaskResponse(
     long TaskId, string ExternalId, string Title, string Project,
-    string Priority, string Status, string? VaultNotePath,
+    string Priority, string Status, string TaskType, long? ParentTaskId, string? VaultNotePath,
     DateTimeOffset CreatedAt, DateTimeOffset? StartedAt, DateTimeOffset? CompletedAt,
     IEnumerable<RunSummary> Runs);
+
+// ----- Goals -----
+public record CreateGoalRequest(string Title, string Body, string Project);
+
+public record SubtaskSummary(
+    long TaskId, string ExternalId, string Title,
+    string Status, string? Summary,
+    DateTimeOffset CreatedAt, DateTimeOffset? CompletedAt);
+
+public record GoalResponse(
+    long TaskId, string ExternalId, string Title, string Body,
+    string Project, string Status, string? Summary,
+    DateTimeOffset CreatedAt, DateTimeOffset? StartedAt, DateTimeOffset? CompletedAt,
+    IEnumerable<SubtaskSummary> Subtasks);
 
 public record RunSummary(long RunId, string Status, DateTimeOffset StartedAt, DateTimeOffset? CompletedAt);
 
