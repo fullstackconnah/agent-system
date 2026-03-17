@@ -10,6 +10,7 @@ const priorityColors = {
 const statusColors = {
   pending: 'var(--status-pending)',
   inProgress: 'var(--status-running)',
+  in_progress: 'var(--status-running)',
   done: 'var(--status-done)',
   failed: 'var(--status-failed)',
 };
@@ -217,7 +218,7 @@ export default function TaskCard({ title, status, tasks, count, delay = 0 }) {
             </li>
           ) : (
             tasks.slice(0, 5).map((task, i) => (
-              <TaskItem key={task.filename || task.id || i} task={task} status={status} theme={theme} />
+              <TaskItem key={task.taskId ?? task.externalId ?? i} task={task} status={status} theme={theme} />
             ))
           )}
         </ul>

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using NexusApi.Data;
 using NexusApi.Models;
 using NexusApi.Options;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
@@ -13,9 +12,11 @@ namespace NexusApi.Services;
 public class GoalOrchestrationService(
     IServiceScopeFactory scopeFactory,
     IOptions<AgentOptions> opts,
+    IHttpClientFactory httpClientFactory,
     ILogger<GoalOrchestrationService> log) : BackgroundService
 {
     private readonly AgentOptions _opts = opts.Value;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
@@ -84,6 +85,16 @@ public class GoalOrchestrationService(
                 ParentTaskId = goalId,
             }).ToList();
 
+            if (subtasks.Count == 0)
+            {
+                goal.Status = "failed";
+                goal.CompletedAt = DateTimeOffset.UtcNow;
+                goal.Summary = "Decomposition returned no subtasks.";
+                await db.SaveChangesAsync(ct);
+                log.LogWarning("GoalOrchestrator: goal {GoalId} failed — decomposition returned no subtasks", goalId);
+                return;
+            }
+
             db.Tasks.AddRange(subtasks);
             await db.SaveChangesAsync(ct);
 
@@ -93,18 +104,16 @@ public class GoalOrchestrationService(
         }
 
         // --- Phase 2: Run subtasks concurrently up to MaxConcurrentAgents ---
-        var semaphore = new SemaphoreSlim(_opts.MaxConcurrentAgents);
-        var runTasks = subtasks.Select(async subtask =>
+        var semaphore = new SemaphoreSlim(Math.Max(1, _opts.MaxConcurrentAgents));
+        var subtaskIds = subtasks.Select(s => s.TaskId).ToList();
+        var runTasks = subtaskIds.Select(async subtaskId =>
         {
             await semaphore.WaitAsync(ct);
             try
             {
                 using var scope = scopeFactory.CreateScope();
                 var runner = scope.ServiceProvider.GetRequiredService<TaskRunnerService>();
-                var db = scope.ServiceProvider.GetRequiredService<NexusDbContext>();
-                var fresh = await db.Tasks.FindAsync([subtask.TaskId], ct);
-                if (fresh is not null)
-                    await runner.RunAsync(fresh, ct);
+                await runner.RunAsync(subtaskId, ct);
             }
             finally
             {
@@ -155,7 +164,6 @@ public class GoalOrchestrationService(
 
         try
         {
-            using var http = new HttpClient();
             var prompt = $"""
                 Produce a concise summary (3-5 sentences) of what was accomplished for this goal.
 
@@ -177,6 +185,7 @@ public class GoalOrchestrationService(
             request.Headers.Add("anthropic-version", "2023-06-01");
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
 
+            using var http = _httpClientFactory.CreateClient();
             var response = await http.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
 

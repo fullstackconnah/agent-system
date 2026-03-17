@@ -35,10 +35,7 @@ public class TasksController(NexusDbContext db, IServiceScopeFactory scopeFactor
         {
             using var scope = scopeFactory.CreateScope();
             var runner = scope.ServiceProvider.GetRequiredService<TaskRunnerService>();
-            var scopedDb = scope.ServiceProvider.GetRequiredService<NexusDbContext>();
-            var freshTask = await scopedDb.Tasks.FindAsync(taskId);
-            if (freshTask is not null)
-                await runner.RunAsync(freshTask, CancellationToken.None);
+            await runner.RunAsync(taskId, CancellationToken.None);
         });
 
         return Accepted(new { status = "accepted", message = "Task queued" });

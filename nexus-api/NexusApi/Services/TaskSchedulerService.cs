@@ -43,7 +43,7 @@ public class TaskSchedulerService(
             if (pending is null) break;
 
             log.LogInformation("Scheduler: running task {Id}", pending.ExternalId);
-            await runner.RunAsync(pending, ct);
+            await runner.RunAsync(pending.TaskId, ct);
         }
     }
 }

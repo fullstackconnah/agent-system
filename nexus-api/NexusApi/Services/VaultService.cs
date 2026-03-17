@@ -50,8 +50,8 @@ public class VaultService(IOptions<AgentOptions> opts) : IVaultService
         var content = $"""
             ---
             id: {goalId}
-            title: {title}
-            project: {project}
+            title: "{title.Replace("\"", "\\\"")}"
+            project: "{project.Replace("\"", "\\\"")}"
             status: {status}
             updated: {now}
             ---

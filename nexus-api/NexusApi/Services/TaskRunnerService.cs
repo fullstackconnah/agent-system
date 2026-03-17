@@ -16,8 +16,15 @@ public class TaskRunnerService(
 {
     private readonly AgentOptions _opts = opts.Value;
 
-    public async Task RunAsync(AgentTask task, CancellationToken ct = default)
+    public async Task RunAsync(long taskId, CancellationToken ct = default)
     {
+        var task = await db.Tasks.FindAsync([taskId], ct);
+        if (task is null)
+        {
+            log.LogWarning("TaskRunnerService: task {TaskId} not found", taskId);
+            return;
+        }
+
         task.Status = "in_progress";
         task.StartedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);

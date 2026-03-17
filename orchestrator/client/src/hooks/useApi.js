@@ -65,11 +65,12 @@ export function useApi(interval = 5000) {
   }, [refresh, interval]);
 
   const submitTask = useCallback(async ({ title, project, priority, body }) => {
-    await fetch('/api/tasks', {
+    const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, body, project, priority }),
     });
+    if (!res.ok) throw new Error(await res.text());
     refresh();
   }, [refresh]);
 
@@ -86,11 +87,12 @@ export function useApi(interval = 5000) {
   }, [refresh]);
 
   const submitGoal = useCallback(async ({ title, project, body }) => {
-    await fetch('/api/goals', {
+    const res = await fetch('/api/goals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, body, project }),
     });
+    if (!res.ok) throw new Error(await res.text());
     refresh();
   }, [refresh]);
 

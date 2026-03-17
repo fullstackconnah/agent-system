@@ -18,7 +18,7 @@ export default function QuickTask({ repos, onSubmit, delay = 0 }) {
     if (repos.length > 0 && !project) {
       setProject(repos[0].name);
     }
-  }, [repos]);
+  }, [repos, project]);
 
   // Focus textarea when accordion opens
   useEffect(() => {
@@ -91,8 +91,8 @@ export default function QuickTask({ repos, onSubmit, delay = 0 }) {
   };
 
   const chevron = open ? '▲' : '▼';
-  const headerLabel = isSignal ? '> NEW TASK' : (isMeridian ? '◈ New Task' : 'NEW TASK');
-  const submitText = isSignal ? '[ EXECUTE ]' : (isMeridian ? 'Submit Task' : '[ EXECUTE ]');
+  const headerLabel = isSignal ? '> NEW GOAL' : (isMeridian ? '◈ New Goal' : 'NEW GOAL');
+  const submitText = isSignal ? '[ EXECUTE ]' : (isMeridian ? 'Submit Goal' : '[ EXECUTE ]');
 
   return (
     <div className="animate-entrance hud-card" style={cardStyle}>
@@ -164,7 +164,7 @@ export default function QuickTask({ repos, onSubmit, delay = 0 }) {
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
               <label style={labelStyle}>
-                {isMeridian ? 'Task description' : 'TASK DESCRIPTION'}
+                {isMeridian ? 'Goal description' : 'GOAL DESCRIPTION'}
                 <span style={{ marginLeft: 8, fontWeight: 400, opacity: 0.6, textTransform: 'none', letterSpacing: 0 }}>
                   {isSignal ? '// ctrl+enter to submit' : '· ⌘↵ to submit'}
                 </span>
