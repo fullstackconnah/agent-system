@@ -16,8 +16,15 @@ public class TaskRunnerService(
 {
     private readonly AgentOptions _opts = opts.Value;
 
-    public async Task RunAsync(AgentTask task, CancellationToken ct = default)
+    public async Task RunAsync(long taskId, CancellationToken ct = default)
     {
+        var task = await db.Tasks.FindAsync([taskId], ct);
+        if (task is null)
+        {
+            log.LogWarning("TaskRunnerService: task {TaskId} not found", taskId);
+            return;
+        }
+
         task.Status = "in_progress";
         task.StartedAt = DateTimeOffset.UtcNow;
         await db.SaveChangesAsync(ct);
@@ -32,7 +39,7 @@ public class TaskRunnerService(
         {
             var memory = await vault.LoadProjectMemoryAsync(task.Project);
             var conventions = await vault.LoadConventionsAsync();
-            var prompt = BuildPrompt(task.Title, task.Body, memory, conventions);
+            var prompt = BuildPrompt(task.Title, task.Body, memory, conventions, task.TaskType);
             var projectPath = Path.Combine(_opts.ProjectsPath, task.Project);
 
             var output = await docker.RunAgentAsync(prompt, projectPath, ct);
@@ -44,6 +51,10 @@ public class TaskRunnerService(
 
             task.Status = "done";
             task.CompletedAt = DateTimeOffset.UtcNow;
+
+            var observations = ExtractObservations(truncated);
+            if (!string.IsNullOrEmpty(observations))
+                await vault.AppendProjectObservationsAsync(task.Project, observations);
 
             var notePath = await vault.WriteRunNoteAsync(task.Project, task.ExternalId, truncated);
             task.VaultNotePath = notePath;
@@ -65,19 +76,64 @@ public class TaskRunnerService(
         }
     }
 
-    private static string BuildPrompt(string title, string body, string memory, string conventions) => $"""
-        ## Project Conventions
-        {(string.IsNullOrEmpty(conventions) ? "No conventions loaded." : conventions)}
+    private static string BuildPrompt(string title, string body, string memory, string conventions, string taskType)
+    {
+        var baseContext = $"""
+            ## Project Conventions
+            {(string.IsNullOrEmpty(conventions) ? "No conventions loaded." : conventions)}
 
-        ## Project Memory
-        {(string.IsNullOrEmpty(memory) ? "No prior memory for this project." : memory)}
+            ## Project Memory
+            {(string.IsNullOrEmpty(memory) ? "No prior memory for this project." : memory)}
+            """;
 
-        ## Your Task
-        ### {title}
+        if (taskType == "subtask")
+        {
+            return $"""
+                {baseContext}
 
-        {body}
+                ## Your Task
+                ### {title}
 
-        ---
-        When finished, briefly summarise what you did and any issues encountered.
-        """.Trim();
+                {body}
+
+                ---
+                You are a sub-orchestrator. Your responsibilities:
+                1. Use the Task tool to delegate work to specialist subagents where appropriate
+                2. If a subagent fails, analyse the failure output and retry with a modified approach
+                3. Complete the task fully before reporting back
+
+                When finished, output your result followed by this exact section:
+
+                ## VAULT_OBSERVATIONS
+                (List any durable knowledge gained — decisions made, patterns discovered, debugging insights)
+                - [decision] ...
+                - [pattern] ...
+                - [debugging] ...
+                - [learning] ...
+                (Omit bullet types that don't apply. Leave section empty if nothing to record.)
+                """.Trim();
+        }
+
+        // standalone
+        return $"""
+            {baseContext}
+
+            ## Your Task
+            ### {title}
+
+            {body}
+
+            ---
+            When finished, briefly summarise what you did and any issues encountered.
+            """.Trim();
+    }
+
+    private static string? ExtractObservations(string output)
+    {
+        const string marker = "## VAULT_OBSERVATIONS";
+        var idx = output.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+        if (idx < 0) return null;
+        var section = output[(idx + marker.Length)..].Trim();
+        return string.IsNullOrWhiteSpace(section) ? null : section;
+    }
 }

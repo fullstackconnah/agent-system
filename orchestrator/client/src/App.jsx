@@ -9,10 +9,11 @@ import RepoCard from './components/RepoCard';
 import RepoPanel from './components/RepoPanel';
 import LogViewer from './components/LogViewer';
 import QuickTask from './components/QuickTask';
+import GoalCard from './components/GoalCard';
 import Footer from './components/Footer';
 
 export default function App() {
-  const { data, logs, submitTask, cloneRepo } = useApi(5000);
+  const { data, logs, submitTask, submitGoal, cloneRepo } = useApi(5000);
   const { theme } = useTheme();
   const [repoPanelOpen, setRepoPanelOpen] = useState(false);
 
@@ -41,6 +42,22 @@ export default function App() {
         <StatCard type="done" value={data.done.length} label="Done" delay={0.12} />
         <StatCard type="failed" value={data.failed.length} label="Failed" delay={0.18} />
 
+        {/* Goals row */}
+        <div style={{ gridColumn: 'span 2' }}>
+          <GoalCard
+            title={isSignal ? 'ACTIVE GOALS' : (theme === 'meridian' ? 'Active Goals' : 'ACTIVE GOALS')}
+            goals={[...data.goals.pending, ...data.goals.inProgress]}
+            delay={0.18}
+          />
+        </div>
+        <div style={{ gridColumn: 'span 2' }}>
+          <GoalCard
+            title={isSignal ? 'COMPLETED GOALS' : (theme === 'meridian' ? 'Completed Goals' : 'COMPLETED GOALS')}
+            goals={[...data.goals.done, ...data.goals.failed]}
+            delay={0.24}
+          />
+        </div>
+
         {/* Task cards - 2 columns */}
         <div style={{ gridColumn: 'span 2' }}>
           <TaskCard
@@ -48,11 +65,11 @@ export default function App() {
             status="pending"
             tasks={data.pending}
             count={data.pending.length}
-            delay={0.24}
+            delay={0.36}
           />
         </div>
         <div style={{ gridColumn: 'span 2' }}>
-          <ContainerCard containers={data.containers} delay={0.3} />
+          <ContainerCard containers={data.containers} delay={0.42} />
         </div>
 
         <div style={{ gridColumn: 'span 2' }}>
@@ -61,7 +78,7 @@ export default function App() {
             status="done"
             tasks={data.done}
             count={data.done.length}
-            delay={0.36}
+            delay={0.48}
           />
         </div>
         <div style={{ gridColumn: 'span 2' }}>
@@ -70,23 +87,23 @@ export default function App() {
             status="failed"
             tasks={data.failed}
             count={data.failed.length}
-            delay={0.42}
+            delay={0.54}
           />
         </div>
 
         {/* Quick task accordion - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <QuickTask repos={data.repositories} onSubmit={submitTask} delay={0.48} />
+          <QuickTask repos={data.repositories} onSubmit={submitGoal} delay={0.6} />
         </div>
 
         {/* Repositories - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <RepoCard repos={data.repositories} delay={0.54} onAddRepo={() => setRepoPanelOpen(true)} />
+          <RepoCard repos={data.repositories} delay={0.66} onAddRepo={() => setRepoPanelOpen(true)} />
         </div>
 
         {/* Log viewer - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <LogViewer logs={logs} delay={0.6} />
+          <LogViewer logs={logs} delay={0.72} />
         </div>
       </main>
 

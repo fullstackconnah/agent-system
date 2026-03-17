@@ -14,6 +14,7 @@ export function useApi(interval = 5000) {
     failed: [],
     containers: [],
     repositories: [],
+    goals: { pending: [], inProgress: [], done: [], failed: [] },
     online: false,
   });
   const [logs, setLogs] = useState([]);
@@ -21,17 +22,29 @@ export function useApi(interval = 5000) {
 
   const refresh = useCallback(async () => {
     try {
-      const [pending, inProgress, done, failed, containers, repositories] =
-        await Promise.all([
+      const [
+        pending, inProgress, done, failed,
+        containers, repositories,
+        goalsPending, goalsInProgress, goalsDone, goalsFailed,
+      ] = await Promise.all([
           fetchJSON('/api/tasks?status=pending'),
           fetchJSON('/api/tasks?status=in_progress'),
           fetchJSON('/api/tasks?status=done'),
           fetchJSON('/api/tasks?status=failed'),
           fetchJSON('/api/containers'),
           fetchJSON('/api/repositories'),
+          fetchJSON('/api/goals?status=pending'),
+          fetchJSON('/api/goals?status=in_progress'),
+          fetchJSON('/api/goals?status=done'),
+          fetchJSON('/api/goals?status=failed'),
         ]);
 
-      setData({ pending, inProgress, done, failed, containers, repositories, online: true });
+      setData({
+        pending, inProgress, done, failed,
+        containers, repositories,
+        goals: { pending: goalsPending, inProgress: goalsInProgress, done: goalsDone, failed: goalsFailed },
+        online: true,
+      });
     } catch {
       setData((prev) => ({ ...prev, online: false }));
     }
@@ -52,11 +65,12 @@ export function useApi(interval = 5000) {
   }, [refresh, interval]);
 
   const submitTask = useCallback(async ({ title, project, priority, body }) => {
-    await fetch('/api/tasks', {
+    const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, body, project, priority }),
     });
+    if (!res.ok) throw new Error(await res.text());
     refresh();
   }, [refresh]);
 
@@ -72,5 +86,15 @@ export function useApi(interval = 5000) {
     return json;
   }, [refresh]);
 
-  return { data, logs, submitTask, cloneRepo, refresh };
+  const submitGoal = useCallback(async ({ title, project, body }) => {
+    const res = await fetch('/api/goals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, body, project }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    refresh();
+  }, [refresh]);
+
+  return { data, logs, submitTask, submitGoal, cloneRepo, refresh };
 }

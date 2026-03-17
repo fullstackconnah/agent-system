@@ -16,4 +16,6 @@ public class AgentOptions
     public string? GithubToken { get; set; }
     public int AgentMemoryMb { get; set; } = 512;
     public double AgentCpus { get; set; } = 1.0;
+    public int MaxConcurrentAgents { get; set; } = 3;
+    public string OrchestratorModel { get; set; } = "claude-opus-4-6";
 }

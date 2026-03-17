@@ -5,35 +5,28 @@ import { renderWithTheme } from '../test/renderWithTheme';
 
 describe('Header', () => {
   it('should render the NEXUS branding', () => {
-    renderWithTheme(<Header online={true} onNewTask={() => {}} />);
+    renderWithTheme(<Header online={true} />);
     expect(screen.getByText('NEXUS')).toBeInTheDocument();
     expect(screen.getByText('Agent Orchestrator')).toBeInTheDocument();
   });
 
   it('should show SYS:ONLINE when online is true', () => {
-    renderWithTheme(<Header online={true} onNewTask={() => {}} />);
+    renderWithTheme(<Header online={true} />);
     expect(screen.getByText('SYS:ONLINE')).toBeInTheDocument();
   });
 
   it('should show SYS:OFFLINE when online is false', () => {
-    renderWithTheme(<Header online={false} onNewTask={() => {}} />);
+    renderWithTheme(<Header online={false} />);
     expect(screen.getByText('SYS:OFFLINE')).toBeInTheDocument();
   });
 
-  it('should call onNewTask when New Task button is clicked', () => {
-    const onNewTask = vi.fn();
-    renderWithTheme(<Header online={true} onNewTask={onNewTask} />);
-    fireEvent.click(screen.getByText('[ + NEW TASK ]'));
-    expect(onNewTask).toHaveBeenCalledTimes(1);
-  });
-
   it('should render the text logo mark', () => {
-    renderWithTheme(<Header online={true} onNewTask={() => {}} />);
+    renderWithTheme(<Header online={true} />);
     expect(screen.getByText('■')).toBeInTheDocument();
   });
 
   it('should not have an SVG logo', () => {
-    const { container } = renderWithTheme(<Header online={true} onNewTask={() => {}} />);
+    const { container } = renderWithTheme(<Header online={true} />);
     const svg = container.querySelector('svg');
     expect(svg).not.toBeInTheDocument();
   });

@@ -17,8 +17,8 @@ describe('TaskCard', () => {
 
   it('should render task items', () => {
     const tasks = [
-      { filename: '2024-01-01-fix-login.md', project: 'MyApp', priority: 'high' },
-      { filename: '2024-01-02-add-search.md', project: 'MyApp', priority: 'medium' },
+      { taskId: 1, title: 'fix-login', project: 'MyApp', priority: 'high' },
+      { taskId: 2, title: 'add-search', project: 'MyApp', priority: 'medium' },
     ];
     renderWithTheme(<TaskCard title="Pending Tasks" status="pending" tasks={tasks} count={2} />);
 
@@ -29,7 +29,8 @@ describe('TaskCard', () => {
 
   it('should display at most 5 tasks', () => {
     const tasks = Array.from({ length: 8 }, (_, i) => ({
-      filename: `2024-01-0${i + 1}-task-${i}.md`,
+      taskId: i + 1,
+      title: `task-${i}`,
       project: 'Test',
       priority: 'low',
     }));
@@ -40,27 +41,27 @@ describe('TaskCard', () => {
     expect(items.length).toBe(5);
   });
 
-  it('should strip date prefix and .md extension from filename', () => {
-    const tasks = [{ filename: '2024-03-14-implement-auth.md', project: 'App' }];
+  it('should use task.title as the display title', () => {
+    const tasks = [{ taskId: 1, title: 'implement-auth', project: 'App' }];
     renderWithTheme(<TaskCard title="Tasks" status="done" tasks={tasks} count={1} />);
     expect(screen.getByText('implement-auth')).toBeInTheDocument();
   });
 
-  it('should fallback to task.id when filename is missing', () => {
-    const tasks = [{ id: 'task-abc', project: 'App' }];
+  it('should fallback to externalId when title is missing', () => {
+    const tasks = [{ taskId: 1, externalId: 'task-abc', project: 'App' }];
     renderWithTheme(<TaskCard title="Tasks" status="done" tasks={tasks} count={1} />);
     expect(screen.getByText('task-abc')).toBeInTheDocument();
   });
 
   it('should display project and priority', () => {
-    const tasks = [{ filename: '2024-01-01-test.md', project: 'ProjectX', priority: 'high' }];
+    const tasks = [{ taskId: 1, title: 'test-task', project: 'ProjectX', priority: 'high' }];
     renderWithTheme(<TaskCard title="Tasks" status="pending" tasks={tasks} count={1} />);
     expect(screen.getByText('ProjectX')).toBeInTheDocument();
     expect(screen.getByText('HIGH')).toBeInTheDocument();
   });
 
   it('should default priority to medium when not specified', () => {
-    const tasks = [{ filename: '2024-01-01-test.md', project: 'App' }];
+    const tasks = [{ taskId: 1, title: 'test-task', project: 'App' }];
     renderWithTheme(<TaskCard title="Tasks" status="pending" tasks={tasks} count={1} />);
     expect(screen.getByText('MED')).toBeInTheDocument();
   });

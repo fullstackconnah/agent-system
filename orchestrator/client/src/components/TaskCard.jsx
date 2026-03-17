@@ -10,14 +10,13 @@ const priorityColors = {
 const statusColors = {
   pending: 'var(--status-pending)',
   inProgress: 'var(--status-running)',
+  in_progress: 'var(--status-running)',
   done: 'var(--status-done)',
   failed: 'var(--status-failed)',
 };
 
 function TaskItem({ task, status, theme }) {
-  const title = task.filename
-    ?.replace(/^\d{4}-\d{2}-\d{2}-/, '')
-    .replace('.md', '') || task.id || 'Task';
+  const title = task.title || task.externalId || String(task.taskId) || 'Task';
 
   const isSignal = theme === 'signal';
   const isForge = isForgeTheme(theme);
@@ -219,7 +218,7 @@ export default function TaskCard({ title, status, tasks, count, delay = 0 }) {
             </li>
           ) : (
             tasks.slice(0, 5).map((task, i) => (
-              <TaskItem key={task.filename || task.id || i} task={task} status={status} theme={theme} />
+              <TaskItem key={task.taskId ?? task.externalId ?? i} task={task} status={status} theme={theme} />
             ))
           )}
         </ul>

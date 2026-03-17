@@ -35,10 +35,7 @@ public class TasksController(NexusDbContext db, IServiceScopeFactory scopeFactor
         {
             using var scope = scopeFactory.CreateScope();
             var runner = scope.ServiceProvider.GetRequiredService<TaskRunnerService>();
-            var scopedDb = scope.ServiceProvider.GetRequiredService<NexusDbContext>();
-            var freshTask = await scopedDb.Tasks.FindAsync(taskId);
-            if (freshTask is not null)
-                await runner.RunAsync(freshTask, CancellationToken.None);
+            await runner.RunAsync(taskId, CancellationToken.None);
         });
 
         return Accepted(new { status = "accepted", message = "Task queued" });
@@ -63,6 +60,7 @@ public class TasksController(NexusDbContext db, IServiceScopeFactory scopeFactor
 
     private static TaskResponse ToResponse(AgentTask t) => new(
         t.TaskId, t.ExternalId, t.Title, t.Project, t.Priority, t.Status,
-        t.VaultNotePath, t.CreatedAt, t.StartedAt, t.CompletedAt,
+        t.TaskType, t.ParentTaskId, t.VaultNotePath,
+        t.CreatedAt, t.StartedAt, t.CompletedAt,
         t.Runs.Select(r => new RunSummary(r.RunId, r.Status, r.StartedAt, r.CompletedAt)));
 }

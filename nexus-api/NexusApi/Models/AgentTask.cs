@@ -15,5 +15,13 @@ public class AgentTask
     public DateTimeOffset? StartedAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
 
+    // Goal hierarchy
+    public string TaskType { get; set; } = "standalone";   // goal | subtask | standalone
+    public long? ParentTaskId { get; set; }
+    public string? Summary { get; set; }
+
+    public AgentTask? Parent { get; set; }
+    public ICollection<AgentTask> Subtasks { get; set; } = [];
+
     public ICollection<AgentRun> Runs { get; set; } = [];
 }
