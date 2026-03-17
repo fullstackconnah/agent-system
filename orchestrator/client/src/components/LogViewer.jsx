@@ -18,7 +18,7 @@ function formatLine(line, theme) {
   return { ts, text: line.replace(/\[.+?\]\s*/, ''), style: colorMap[level] };
 }
 
-export default function LogViewer({ logs, delay = 0 }) {
+export default function LogViewer({ logs, delay = 0, compact = false }) {
   const { theme } = useTheme();
   const outputRef = useRef(null);
 
@@ -82,7 +82,7 @@ export default function LogViewer({ logs, delay = 0 }) {
           fontSize: 12,
           lineHeight: 1.6,
           padding: '16px 20px',
-          height: 360,
+          height: compact ? 200 : 360,
           overflowY: 'auto',
           background: isForge ? 'var(--bg-surface)' : 'var(--bg-terminal)',
           whiteSpace: 'pre-wrap',

@@ -358,18 +358,33 @@ body {
 /* ─── Responsive ─── */
 @media (max-width: 1024px) {
   main {
-    grid-template-columns: 1fr 1fr !important;
     padding: 20px 16px 40px !important;
+  }
+  .nexus-two-zone {
+    flex-direction: column !important;
+  }
+  .nexus-sidebar {
+    max-width: 100% !important;
+    flex: 1 !important;
+    min-width: 0 !important;
   }
 }
 
 @media (max-width: 640px) {
   main {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
+    padding: 12px 12px 40px !important;
   }
   header {
     padding: 0 16px !important;
+  }
+  .nexus-two-zone {
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+  .nexus-sidebar {
+    max-width: 100% !important;
+    flex: 1 !important;
+    min-width: 0 !important;
   }
 }
 

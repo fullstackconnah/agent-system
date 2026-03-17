@@ -112,7 +112,15 @@ public class DockerService(IOptions<AgentOptions> opts, ILogger<DockerService> l
 
             var wait = await _docker.Containers.WaitContainerAsync(container.ID, ct);
             if (wait.StatusCode != 0)
-                throw new InvalidOperationException($"Container exited with code {wait.StatusCode}");
+            {
+                var detail = new System.Text.StringBuilder();
+                detail.Append($"Container exited with code {wait.StatusCode}");
+                if (!string.IsNullOrWhiteSpace(stderr))
+                    detail.Append($"\nStderr: {(stderr.Length > 2000 ? stderr[..2000] + "…" : stderr)}");
+                if (output.Length > 0)
+                    detail.Append($"\nStdout: {(output.Length > 500 ? output.ToString()[..500] + "…" : output.ToString())}");
+                throw new InvalidOperationException(detail.ToString());
+            }
 
             return output.ToString();
         }

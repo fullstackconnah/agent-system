@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTheme, isForgeTheme } from '../ThemeContext';
 
-export default function QuickTask({ repos, onSubmit, delay = 0 }) {
+export default function QuickTask({ repos, onSubmit, delay = 0, defaultOpen = false }) {
   const { theme } = useTheme();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [body, setBody] = useState('');
   const [project, setProject] = useState('');
   const [feedback, setFeedback] = useState(false);

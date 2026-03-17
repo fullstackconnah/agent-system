@@ -124,7 +124,7 @@ function TaskItem({ task, status, theme }) {
   );
 }
 
-export default function TaskCard({ title, status, tasks, count, delay = 0 }) {
+export default function TaskCard({ title, status, tasks, count, delay = 0, hideHeader = false }) {
   const { theme } = useTheme();
   const isSignal = theme === 'signal';
   const isForge = isForgeTheme(theme);
@@ -158,37 +158,39 @@ export default function TaskCard({ title, status, tasks, count, delay = 0 }) {
       )}
 
       {/* Header */}
-      <div style={{
-        padding: '14px 20px',
-        borderBottom: `1px solid var(--border)`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <span style={{
-          fontSize: isMeridian ? 16 : 13,
-          fontWeight: isMeridian ? 600 : 700,
-          textTransform: isMeridian ? 'none' : 'uppercase',
-          letterSpacing: isMeridian ? '0.02em' : '0.08em',
-          color: 'var(--text-secondary)',
-          fontFamily: 'var(--font-heading)',
+      {!hideHeader && (
+        <div style={{
+          padding: '14px 20px',
+          borderBottom: `1px solid var(--border)`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}>
-          <span style={{ color: 'var(--accent)' }}>{sectionPrefix}</span>
-          {title}
-        </span>
-        <span style={{
-          fontSize: 11,
-          fontWeight: 600,
-          padding: '2px 10px',
-          borderRadius: 'var(--radius-badge)',
-          background: 'var(--accent-glow)',
-          color: 'var(--accent)',
-          border: isForge ? 'var(--border-width) solid var(--border)' : `1px solid var(--accent-muted)`,
-          fontFamily: 'var(--font-data)',
-        }}>
-          {count}
-        </span>
-      </div>
+          <span style={{
+            fontSize: isMeridian ? 16 : 13,
+            fontWeight: isMeridian ? 600 : 700,
+            textTransform: isMeridian ? 'none' : 'uppercase',
+            letterSpacing: isMeridian ? '0.02em' : '0.08em',
+            color: 'var(--text-secondary)',
+            fontFamily: 'var(--font-heading)',
+          }}>
+            <span style={{ color: 'var(--accent)' }}>{sectionPrefix}</span>
+            {title}
+          </span>
+          <span style={{
+            fontSize: 11,
+            fontWeight: 600,
+            padding: '2px 10px',
+            borderRadius: 'var(--radius-badge)',
+            background: 'var(--accent-glow)',
+            color: 'var(--accent)',
+            border: isForge ? 'var(--border-width) solid var(--border)' : `1px solid var(--accent-muted)`,
+            fontFamily: 'var(--font-data)',
+          }}>
+            {count}
+          </span>
+        </div>
+      )}
 
       {/* Body */}
       <div style={{ padding: '8px 20px 16px' }}>
