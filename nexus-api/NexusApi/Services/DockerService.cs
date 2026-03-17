@@ -25,13 +25,10 @@ public class DockerService(IOptions<AgentOptions> opts, ILogger<DockerService> l
 
         var env = new List<string>();
         if (!string.IsNullOrEmpty(_opts.AnthropicApiKey))
-        {
             env.Add($"ANTHROPIC_API_KEY={_opts.AnthropicApiKey}");
-        }
-        else
-        {
-            binds.Add($"{_opts.HostClaudeCreds}:/home/agent/.claude:ro");
-        }
+
+        // Always mount claude config read-only so installed plugins are available
+        binds.Add($"{_opts.HostClaudeCreds}:/home/agent/.claude:ro");
 
         return await RunContainerAsync(
             _opts.AgentImage,
@@ -44,20 +41,18 @@ public class DockerService(IOptions<AgentOptions> opts, ILogger<DockerService> l
 
     public async Task<string> RunPluginCommandAsync(string[] args, CancellationToken ct = default)
     {
-        // Plugin operations need rw access to claude creds
-        // CLAUDE_CREDS env var tells the claude CLI where to find credentials inside the container
+        // Plugin operations need rw access so install/uninstall can write to ~/.claude
         var binds = new List<string>
         {
-            $"{_opts.HostClaudeCreds}:/claude-creds",
+            $"{_opts.HostClaudeCreds}:/home/agent/.claude",
         };
-        var env = new List<string> { "CLAUDE_CREDS=/claude-creds" };
         var fullArgs = new[] { "plugin" }.Concat(args).ToArray();
         return await RunContainerAsync(
             _opts.AgentImage,
             fullArgs,
             binds,
-            env,
-            workingDir: "/claude-creds",
+            [],
+            workingDir: "/home/agent/.claude",
             ct);
     }
 
