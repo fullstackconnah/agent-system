@@ -30,7 +30,7 @@ export default function QuickTask({ repos, onSubmit, delay = 0 }) {
   const handleSubmit = async () => {
     if (!body.trim() || !project) return;
     const title = body.trim().split('\n')[0].slice(0, 80);
-    await onSubmit({ title, body: body.trim(), project, priority: 'medium' });
+    await onSubmit({ title, body: body.trim(), project });
     setBody('');
     setFeedback(true);
     setTimeout(() => { setFeedback(false); setOpen(false); }, 2000);
@@ -247,7 +247,7 @@ export default function QuickTask({ repos, onSubmit, delay = 0 }) {
               fontFamily: 'var(--font-data)',
               animation: 'fadeIn 0.2s ease',
             }}>
-              {isSignal ? '[ TASK QUEUED ✓ ]' : '✓ Task queued successfully'}
+              {isSignal ? '[ GOAL QUEUED ✓ ]' : '✓ Goal queued successfully'}
             </div>
           )}
         </div>

@@ -15,9 +15,7 @@ const statusColors = {
 };
 
 function TaskItem({ task, status, theme }) {
-  const title = task.filename
-    ?.replace(/^\d{4}-\d{2}-\d{2}-/, '')
-    .replace('.md', '') || task.id || 'Task';
+  const title = task.title || task.externalId || String(task.taskId) || 'Task';
 
   const isSignal = theme === 'signal';
   const isForge = isForgeTheme(theme);
