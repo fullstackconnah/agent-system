@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme, THEMES, isForgeTheme } from '../ThemeContext';
 
-export default function Header({ online, onNewTask }) {
+export default function Header({ online }) {
   const { theme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -208,64 +208,6 @@ export default function Header({ online, onNewTask }) {
         </div>
       </div>
 
-      {/* New Task */}
-      <button
-        onClick={onNewTask}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-          background: isForge ? 'var(--accent)' : (isMeridian ? 'var(--accent)' : 'transparent'),
-          border: `var(--border-width) solid ${isSignal ? 'var(--accent)' : 'var(--border)'}`,
-          borderRadius: 'var(--radius)',
-          color: isSignal ? 'var(--accent)' : 'var(--text-inverse)',
-          fontFamily: 'var(--font-heading)',
-          fontSize: 12,
-          fontWeight: 600,
-          padding: '8px 16px',
-          cursor: 'pointer',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          transition: 'all 0.1s',
-          boxShadow: isForge ? '3px 3px 0 var(--shadow-color)' : 'none',
-        }}
-        onMouseEnter={(e) => {
-          if (isSignal) {
-            e.currentTarget.style.background = 'var(--accent)';
-            e.currentTarget.style.color = 'var(--text-inverse)';
-          } else if (isForge) {
-            e.currentTarget.style.transform = 'translate(-1px, -1px)';
-            e.currentTarget.style.boxShadow = '4px 4px 0 var(--shadow-color)';
-          } else {
-            e.currentTarget.style.background = 'var(--accent-dim)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (isSignal) {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--accent)';
-          } else if (isForge) {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '3px 3px 0 var(--shadow-color)';
-          } else {
-            e.currentTarget.style.background = 'var(--accent)';
-          }
-        }}
-        onMouseDown={(e) => {
-          if (isForge) {
-            e.currentTarget.style.transform = 'translate(3px, 3px)';
-            e.currentTarget.style.boxShadow = 'none';
-          }
-        }}
-        onMouseUp={(e) => {
-          if (isForge) {
-            e.currentTarget.style.transform = 'translate(-1px, -1px)';
-            e.currentTarget.style.boxShadow = '4px 4px 0 var(--shadow-color)';
-          }
-        }}
-      >
-        {isSignal ? '[ + NEW TASK ]' : isMeridian ? '+ New Task' : '[ + NEW TASK ]'}
-      </button>
     </header>
   );
 }

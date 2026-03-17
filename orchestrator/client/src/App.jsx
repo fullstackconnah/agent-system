@@ -8,13 +8,12 @@ import ContainerCard from './components/ContainerCard';
 import RepoCard from './components/RepoCard';
 import RepoPanel from './components/RepoPanel';
 import LogViewer from './components/LogViewer';
-import TaskPanel from './components/TaskPanel';
+import QuickTask from './components/QuickTask';
 import Footer from './components/Footer';
 
 export default function App() {
   const { data, logs, submitTask, cloneRepo } = useApi(5000);
   const { theme } = useTheme();
-  const [panelOpen, setPanelOpen] = useState(false);
   const [repoPanelOpen, setRepoPanelOpen] = useState(false);
 
   const isSignal = theme === 'signal';
@@ -33,7 +32,7 @@ export default function App() {
       {/* Scanline overlay for SIGNAL */}
       {isSignal && <div className="scanline-overlay" />}
 
-      <Header online={data.online} onNewTask={() => setPanelOpen(true)} />
+      <Header online={data.online} />
 
       <main style={gridStyle}>
         {/* Stats row */}
@@ -75,24 +74,23 @@ export default function App() {
           />
         </div>
 
+        {/* Quick task accordion - full width */}
+        <div style={{ gridColumn: '1 / -1' }}>
+          <QuickTask repos={data.repositories} onSubmit={submitTask} delay={0.48} />
+        </div>
+
         {/* Repositories - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <RepoCard repos={data.repositories} delay={0.48} onAddRepo={() => setRepoPanelOpen(true)} />
+          <RepoCard repos={data.repositories} delay={0.54} onAddRepo={() => setRepoPanelOpen(true)} />
         </div>
 
         {/* Log viewer - full width */}
         <div style={{ gridColumn: '1 / -1' }}>
-          <LogViewer logs={logs} delay={0.54} />
+          <LogViewer logs={logs} delay={0.6} />
         </div>
       </main>
 
       <Footer online={data.online} />
-
-      <TaskPanel
-        open={panelOpen}
-        onClose={() => setPanelOpen(false)}
-        onSubmit={submitTask}
-      />
 
       <RepoPanel
         open={repoPanelOpen}
