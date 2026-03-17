@@ -4,3 +4,6 @@ node_modules/
 .claude
 .claude-flow
 .worktrees/
+.serena/
+.superpowers/
+docs/superpowers/

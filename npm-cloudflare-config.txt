@@ -1,5 +1,5 @@
 # NPM + Cloudflare Tunnel Config
-# agents.connah.com.au → orchestrator:3000
+# agents.connah.com.au → nexus-api:8080 (host port 3001)
 
 # ============================================================
 # STEP 1: Nginx Proxy Manager
@@ -8,7 +8,7 @@
 #
 #   Domain Names:       agents.connah.com.au
 #   Scheme:             http
-#   Forward Hostname:   agent-orchestrator   (Docker container name)
+#   Forward Hostname:   nexus-api   (Docker container name)
 #   Forward Port:       3000
 #   Cache Assets:       off
 #   Block Common Exploits: on
@@ -49,7 +49,7 @@
 #
 # ingress:
 #   - hostname: agents.connah.com.au
-#     service: http://agent-orchestrator:3000
+#     service: http://nexus-api:8080
 #     originRequest:
 #       noTLSVerify: false
 #   # ... your existing rules below
@@ -62,23 +62,17 @@
 #   Subdomain: agents
 #   Domain:    connah.com.au
 #   Type:      HTTP
-#   URL:       agent-orchestrator:3000
+#   URL:       nexus-api:8080
 
 # ============================================================
-# STEP 4: Make sure agent-orchestrator is on the same Docker network
+# STEP 4: Make sure nexus-api is on the same Docker network
 # ============================================================
-# If your NPM and Cloudflare tunnel containers use a shared network
-# (e.g. 'proxy' or 'npm_default'), add it to docker-compose.yml:
+# nexus-api joins both agent-net and npm-net (nginx-proxy-manager_default).
+# The npm-net network is already configured in docker-compose.yml.
 #
-# services:
-#   orchestrator:
-#     networks:
-#       - agent-net
-#       - proxy          # ← add your existing NPM network here
+# If your NPM container uses a different network name, update docker-compose.yml:
 #
 # networks:
-#   agent-net:
-#     name: agent-net
-#   proxy:
-#     external: true     # ← reference existing network, don't recreate it
-#     name: proxy        # ← whatever your NPM network is actually called
+#   npm-net:
+#     external: true
+#     name: <your-npm-network-name>
