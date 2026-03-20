@@ -52,6 +52,12 @@ public record MarketplaceResponse(
 public record HealthResponse(string Status, string AuthMode, DateTimeOffset Timestamp);
 public record LogsResponse(IEnumerable<string> Lines, int NextOffset);
 
+// ----- Auth -----
+public record AuthStatusResponse(bool Authenticated, bool Expired, string? ExpiresAt, string AuthMode);
+public record AuthRefreshResponse(bool Success, string? ExpiresAt, string? Error);
+public record AuthLoginResponse(bool Success, string? Url, string? ContainerId, string? Error);
+public record AuthLoginCallbackResponse(bool Complete, bool Success, string? ExpiresAt);
+
 // ----- Repos -----
 public record CloneRequest(string Url);
 public record RepoInfo(string Name, string? Remote, string? Branch, string? LastCommit, string? LastCommitTime);

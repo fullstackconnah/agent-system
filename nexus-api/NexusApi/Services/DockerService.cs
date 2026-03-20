@@ -29,8 +29,8 @@ public class DockerService(IOptions<AgentOptions> opts, ILogger<DockerService> l
         if (!string.IsNullOrEmpty(_opts.GithubToken))
             env.Add($"GITHUB_TOKEN={_opts.GithubToken}");
 
-        // Always mount claude config read-only so installed plugins are available
-        binds.Add($"{_opts.HostClaudeCreds}:/home/agent/.claude:ro");
+        // Mount claude config rw so agents can auto-refresh OAuth tokens
+        binds.Add($"{_opts.HostClaudeCreds}:/home/agent/.claude");
 
         return await RunContainerAsync(
             _opts.AgentImage,
@@ -71,6 +71,84 @@ public class DockerService(IOptions<AgentOptions> opts, ILogger<DockerService> l
                 c.Status,
                 ((DateTimeOffset)c.Created).ToUnixTimeSeconds()))
             .ToList();
+    }
+
+    public async Task<(string ContainerId, string Output)> RunAuthCommandAsync(
+        string command, TimeSpan? timeout = null, CancellationToken ct = default)
+    {
+        await PullImageAsync(_opts.AgentImage, ct);
+
+        var binds = new List<string>
+        {
+            $"{_opts.HostClaudeCreds}:/home/agent/.claude",
+        };
+
+        var container = await _docker.Containers.CreateContainerAsync(new CreateContainerParameters
+        {
+            Image = _opts.AgentImage,
+            Entrypoint = ["/bin/bash", "-c", command],
+            Cmd = [],
+            User = "1000:1000",
+            WorkingDir = "/home/agent",
+            HostConfig = new HostConfig
+            {
+                Binds = binds,
+                AutoRemove = false,
+                Memory = _opts.AgentMemoryMb * 1024L * 1024L,
+                NanoCPUs = (long)(_opts.AgentCpus * 1e9),
+            },
+            Tty = false,
+        }, ct);
+
+        try
+        {
+            using var stream = await _docker.Containers.AttachContainerAsync(
+                container.ID,
+                false,
+                new ContainerAttachParameters { Stream = true, Stdout = true, Stderr = true },
+                ct);
+
+            await _docker.Containers.StartContainerAsync(container.ID, null, ct);
+
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(timeout ?? TimeSpan.FromSeconds(30));
+
+            (string stdout, string stderr) = await stream.ReadOutputToEndAsync(cts.Token);
+            var output = stdout;
+            if (!string.IsNullOrWhiteSpace(stderr))
+                log.LogWarning("Auth container stderr: {Stderr}", stderr);
+
+            var wait = await _docker.Containers.WaitContainerAsync(container.ID, cts.Token);
+            if (wait.StatusCode != 0)
+                log.LogWarning("Auth container exited with code {Code}: {Stderr}", wait.StatusCode, stderr);
+
+            return (container.ID[..12], output);
+        }
+        catch (OperationCanceledException)
+        {
+            // For login commands, the container may still be running waiting for callback
+            return (container.ID[..12], "timeout");
+        }
+        finally
+        {
+            try
+            {
+                var inspect = await _docker.Containers.InspectContainerAsync(container.ID, ct);
+                if (inspect.State.Running)
+                {
+                    // Don't remove running containers (login flow waiting for callback)
+                    log.LogInformation("Auth container {Id} still running", container.ID[..12]);
+                }
+                else
+                {
+                    await _docker.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters(), ct);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.LogWarning("Auth container cleanup (non-fatal): {Error}", ex.Message);
+            }
+        }
     }
 
     private async Task<string> RunContainerAsync(

@@ -8,4 +8,5 @@ public interface IDockerService
     Task<string> RunAgentAsync(string prompt, string projectPath, CancellationToken ct = default);
     Task<string> RunPluginCommandAsync(string[] args, CancellationToken ct = default);
     Task<IReadOnlyList<ContainerInfo>> ListAgentContainersAsync(CancellationToken ct = default);
+    Task<(string ContainerId, string Output)> RunAuthCommandAsync(string command, TimeSpan? timeout = null, CancellationToken ct = default);
 }

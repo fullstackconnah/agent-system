@@ -15,6 +15,7 @@ export function useApi(interval = 5000) {
     containers: [],
     repositories: [],
     goals: { pending: [], inProgress: [], done: [], failed: [] },
+    auth: { authenticated: false, expired: true, expiresAt: null, authMode: 'oauth' },
     online: false,
   });
   const [logs, setLogs] = useState([]);
@@ -26,6 +27,7 @@ export function useApi(interval = 5000) {
         pending, inProgress, done, failed,
         containers, repositories,
         goalsPending, goalsInProgress, goalsDone, goalsFailed,
+        auth,
       ] = await Promise.all([
           fetchJSON('/api/tasks?status=pending'),
           fetchJSON('/api/tasks?status=in_progress'),
@@ -37,12 +39,14 @@ export function useApi(interval = 5000) {
           fetchJSON('/api/goals?status=in_progress'),
           fetchJSON('/api/goals?status=done'),
           fetchJSON('/api/goals?status=failed'),
+          fetchJSON('/api/auth/status').catch(() => ({ authenticated: false, expired: true, expiresAt: null, authMode: 'oauth' })),
         ]);
 
       setData({
         pending, inProgress, done, failed,
         containers, repositories,
         goals: { pending: goalsPending, inProgress: goalsInProgress, done: goalsDone, failed: goalsFailed },
+        auth,
         online: true,
       });
     } catch {
@@ -96,5 +100,20 @@ export function useApi(interval = 5000) {
     refresh();
   }, [refresh]);
 
-  return { data, logs, submitTask, submitGoal, cloneRepo, refresh };
+  const refreshAuth = useCallback(async () => {
+    const res = await fetch('/api/auth/refresh', { method: 'POST' });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || 'Refresh failed');
+    refresh();
+    return json;
+  }, [refresh]);
+
+  const loginAuth = useCallback(async () => {
+    const res = await fetch('/api/auth/login', { method: 'POST' });
+    const json = await res.json();
+    if (!json.success) throw new Error(json.error || 'Login failed');
+    return json;
+  }, []);
+
+  return { data, logs, submitTask, submitGoal, cloneRepo, refreshAuth, loginAuth, refresh };
 }

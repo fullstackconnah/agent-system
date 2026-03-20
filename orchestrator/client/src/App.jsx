@@ -15,7 +15,7 @@ import HistoryTabs from './components/HistoryTabs';
 import Footer from './components/Footer';
 
 export default function App() {
-  const { data, logs, submitTask, submitGoal, cloneRepo } = useApi(5000);
+  const { data, logs, submitTask, submitGoal, cloneRepo, refreshAuth, loginAuth } = useApi(5000);
   const { theme } = useTheme();
   const [repoPanelOpen, setRepoPanelOpen] = useState(false);
 
@@ -27,7 +27,7 @@ export default function App() {
       {/* Scanline overlay for SIGNAL */}
       {isSignal && <div className="scanline-overlay" />}
 
-      <Header online={data.online} />
+      <Header online={data.online} auth={data.auth} onRefreshAuth={refreshAuth} onLoginAuth={loginAuth} />
 
       <main style={{ padding: '24px 32px 60px', maxWidth: 1400, margin: '0 auto' }}>
         {/* Stats Bar — full width */}

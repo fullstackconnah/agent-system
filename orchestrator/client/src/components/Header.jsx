@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme, THEMES, isForgeTheme } from '../ThemeContext';
+import AuthBadge from './AuthBadge';
 
-export default function Header({ online }) {
+export default function Header({ online, auth, onRefreshAuth, onLoginAuth }) {
   const { theme, setTheme } = useTheme();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -108,6 +109,9 @@ export default function Header({ online }) {
             {online ? (isSignal ? 'SYS:ONLINE' : 'Online') : (isSignal ? 'SYS:OFFLINE' : 'Offline')}
           </span>
         </div>
+
+        {/* Auth Badge */}
+        <AuthBadge auth={auth} onRefresh={onRefreshAuth} onLogin={onLoginAuth} />
 
         {/* Theme Selector */}
         <div ref={dropdownRef} style={{ position: 'relative' }}>
