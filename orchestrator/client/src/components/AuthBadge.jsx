@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 export default function AuthBadge({ auth, onRefresh, onLogin }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const fileRef = useRef(null);
 
   if (!auth) return null;
 
@@ -11,28 +12,30 @@ export default function AuthBadge({ auth, onRefresh, onLogin }) {
 
   const handleRefresh = async () => {
     setLoading(true);
-    setError(null);
+    setShowLogin(false);
     try {
       await onRefresh();
-    } catch (e) {
-      setError('refresh-failed');
+    } catch {
+      setShowLogin(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogin = async () => {
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     setLoading(true);
-    setError(null);
     try {
-      const result = await onLogin();
-      if (result.url) {
-        window.open(result.url, '_blank');
-      }
-    } catch (e) {
-      setError(e.message);
+      const text = await file.text();
+      const json = JSON.parse(text);
+      await onLogin(json);
+      setShowLogin(false);
+    } catch (err) {
+      alert('Failed to upload credentials: ' + err.message);
     } finally {
       setLoading(false);
+      if (fileRef.current) fileRef.current.value = '';
     }
   };
 
@@ -48,85 +51,69 @@ export default function AuthBadge({ auth, onRefresh, onLogin }) {
       ? 'Token Expired'
       : 'Not Authenticated';
 
+  const btnBase = {
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--radius)',
+    fontFamily: 'var(--font-data)',
+    fontSize: 10,
+    padding: '2px 8px',
+    cursor: 'pointer',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    whiteSpace: 'nowrap',
+  };
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{
-        width: 8,
-        height: 8,
-        borderRadius: '50%',
-        background: dotColor,
-        display: 'inline-block',
-        flexShrink: 0,
+        width: 8, height: 8, borderRadius: '50%',
+        background: dotColor, display: 'inline-block', flexShrink: 0,
       }} />
       <span style={{
-        fontSize: 11,
-        fontFamily: 'var(--font-data)',
-        color: 'var(--text-secondary)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-        whiteSpace: 'nowrap',
+        fontSize: 11, fontFamily: 'var(--font-data)',
+        color: 'var(--text-secondary)', textTransform: 'uppercase',
+        letterSpacing: '0.05em', whiteSpace: 'nowrap',
       }}>
         {labelText}
       </span>
 
-      {!isOk && !loading && error !== 'refresh-failed' && (
-        <button
-          onClick={handleRefresh}
-          disabled={loading}
-          style={{
-            background: 'var(--bg-elevated)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius)',
-            color: 'var(--text-secondary)',
-            fontFamily: 'var(--font-data)',
-            fontSize: 10,
-            padding: '2px 8px',
-            cursor: 'pointer',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            whiteSpace: 'nowrap',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-active)';
-            e.currentTarget.style.color = 'var(--accent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border)';
-            e.currentTarget.style.color = 'var(--text-secondary)';
-          }}
-        >
+      {!isOk && !loading && !showLogin && (
+        <button onClick={handleRefresh} style={{
+          ...btnBase,
+          background: 'var(--bg-elevated)',
+          color: 'var(--text-secondary)',
+        }}>
           Refresh
         </button>
       )}
 
-      {!isOk && !loading && error === 'refresh-failed' && (
-        <button
-          onClick={handleLogin}
-          disabled={loading}
-          style={{
-            background: 'var(--accent-glow, rgba(139,92,246,0.1))',
-            border: '1px solid var(--accent)',
-            borderRadius: 'var(--radius)',
-            color: 'var(--accent)',
-            fontFamily: 'var(--font-data)',
-            fontSize: 10,
-            padding: '2px 8px',
-            cursor: 'pointer',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          Login
-        </button>
+      {!isOk && !loading && showLogin && (
+        <>
+          <button
+            onClick={() => fileRef.current?.click()}
+            style={{
+              ...btnBase,
+              background: 'var(--accent-glow, rgba(139,92,246,0.1))',
+              border: '1px solid var(--accent)',
+              color: 'var(--accent)',
+            }}
+          >
+            Upload Credentials
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".json"
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+        </>
       )}
 
       {loading && (
         <span style={{
-          fontSize: 10,
-          fontFamily: 'var(--font-data)',
-          color: 'var(--text-ghost)',
-          textTransform: 'uppercase',
+          fontSize: 10, fontFamily: 'var(--font-data)',
+          color: 'var(--text-ghost)', textTransform: 'uppercase',
         }}>
           ...
         </span>

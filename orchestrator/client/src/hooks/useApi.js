@@ -108,12 +108,17 @@ export function useApi(interval = 5000) {
     return json;
   }, [refresh]);
 
-  const loginAuth = useCallback(async () => {
-    const res = await fetch('/api/auth/login', { method: 'POST' });
+  const loginAuth = useCallback(async (credentials) => {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
     const json = await res.json();
     if (!json.success) throw new Error(json.error || 'Login failed');
+    refresh();
     return json;
-  }, []);
+  }, [refresh]);
 
   return { data, logs, submitTask, submitGoal, cloneRepo, refreshAuth, loginAuth, refresh };
 }

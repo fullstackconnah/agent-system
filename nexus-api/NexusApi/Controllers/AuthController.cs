@@ -24,53 +24,8 @@ public class AuthController(
     public IActionResult Status()
     {
         var authMode = string.IsNullOrEmpty(_opts.AnthropicApiKey) ? "oauth" : "api-key";
-        var credsPath = Path.Combine(_opts.ClaudeCreds, ".credentials.json");
-
-        if (!System.IO.File.Exists(credsPath))
-        {
-            return Ok(new AuthStatusResponse(
-                Authenticated: false,
-                Expired: true,
-                ExpiresAt: null,
-                AuthMode: authMode));
-        }
-
-        try
-        {
-            var json = System.IO.File.ReadAllText(credsPath);
-            using var doc = JsonDocument.Parse(json);
-
-            if (!doc.RootElement.TryGetProperty("claudeAiOauth", out var oauth))
-            {
-                return Ok(new AuthStatusResponse(false, true, null, authMode));
-            }
-
-            var hasToken = oauth.TryGetProperty("accessToken", out var tokenProp)
-                           && !string.IsNullOrEmpty(tokenProp.GetString());
-
-            long expiresAtMs = 0;
-            var expired = true;
-            string? expiresAtIso = null;
-
-            if (oauth.TryGetProperty("expiresAt", out var expProp))
-            {
-                expiresAtMs = expProp.GetInt64();
-                var expiresAtDto = DateTimeOffset.FromUnixTimeMilliseconds(expiresAtMs);
-                expired = expiresAtDto < DateTimeOffset.UtcNow;
-                expiresAtIso = expiresAtDto.ToString("o");
-            }
-
-            return Ok(new AuthStatusResponse(
-                Authenticated: hasToken,
-                Expired: expired,
-                ExpiresAt: expiresAtIso,
-                AuthMode: authMode));
-        }
-        catch (Exception ex)
-        {
-            log.LogWarning("Failed to read credentials: {Error}", ex.Message);
-            return Ok(new AuthStatusResponse(false, true, null, authMode));
-        }
+        var (authenticated, expired, expiresAtIso) = ReadTokenStatus();
+        return Ok(new AuthStatusResponse(authenticated, expired, expiresAtIso, authMode));
     }
 
     /// <summary>
@@ -81,8 +36,6 @@ public class AuthController(
     {
         try
         {
-            // 'claude auth status' does NOT trigger a refresh. A real API call does.
-            // Run a minimal prompt that forces Claude to authenticate, triggering auto-refresh.
             var (_, output) = await docker.RunAuthCommandAsync(
                 "claude -p 'respond with OK' --output-format json --max-turns 1",
                 TimeSpan.FromSeconds(60),
@@ -90,34 +43,11 @@ public class AuthController(
 
             log.LogInformation("Auth refresh output: {Output}", output.Length > 500 ? output[..500] : output);
 
-            // Re-read the credentials to check the new expiry
-            var credsPath = Path.Combine(_opts.ClaudeCreds, ".credentials.json");
-            string? newExpiresAt = null;
-            var stillExpired = true;
-
-            if (System.IO.File.Exists(credsPath))
-            {
-                try
-                {
-                    var json = System.IO.File.ReadAllText(credsPath);
-                    using var doc = JsonDocument.Parse(json);
-                    if (doc.RootElement.TryGetProperty("claudeAiOauth", out var oauth)
-                        && oauth.TryGetProperty("expiresAt", out var expProp))
-                    {
-                        var expiresAt = DateTimeOffset.FromUnixTimeMilliseconds(expProp.GetInt64());
-                        newExpiresAt = expiresAt.ToString("o");
-                        stillExpired = expiresAt < DateTimeOffset.UtcNow;
-                    }
-                }
-                catch { /* best-effort */ }
-            }
+            var (_, stillExpired, newExpiresAt) = ReadTokenStatus();
 
             if (stillExpired)
-            {
-                // Token didn't refresh — refresh token may also be expired
                 return Ok(new AuthRefreshResponse(false, newExpiresAt,
-                    "Token could not be refreshed. The refresh token may have expired — use Login instead."));
-            }
+                    "Token could not be refreshed automatically. Use the Login button to re-authenticate."));
 
             return Ok(new AuthRefreshResponse(true, newExpiresAt, null));
         }
@@ -129,58 +59,88 @@ public class AuthController(
     }
 
     /// <summary>
-    /// POST /api/auth/login — spawns a container running 'claude auth login --no-open' and returns the URL
+    /// POST /api/auth/login — accepts credentials JSON uploaded from a machine where the user can authenticate.
+    /// The frontend reads ~/.claude/.credentials.json from a file input and POSTs the claudeAiOauth section.
     /// </summary>
     [HttpPost("login")]
-    public async Task<IActionResult> Login(CancellationToken ct)
+    public async Task<IActionResult> Login([FromBody] JsonElement body, CancellationToken ct)
     {
         try
         {
-            // Use a longer timeout — the login command outputs a URL then waits for callback
-            var (containerId, output) = await docker.RunAuthCommandAsync(
-                "claude auth login --no-open 2>&1",
-                TimeSpan.FromSeconds(15),
-                ct);
+            var credsPath = Path.Combine(_opts.ClaudeCreds, ".credentials.json");
 
-            // Extract URL from output — look for https:// URLs
-            string? url = null;
-            foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            // Read existing file to preserve other keys (mcpOAuth etc.)
+            JsonElement existingRoot = default;
+            if (System.IO.File.Exists(credsPath))
             {
-                var trimmed = line.Trim();
-                var urlIdx = trimmed.IndexOf("https://", StringComparison.Ordinal);
-                if (urlIdx >= 0)
+                try
                 {
-                    url = trimmed[urlIdx..].Trim();
-                    break;
+                    using var existingDoc = JsonDocument.Parse(System.IO.File.ReadAllText(credsPath));
+                    existingRoot = existingDoc.RootElement.Clone();
                 }
+                catch { /* start fresh if corrupt */ }
             }
 
-            if (url == null && output != "timeout")
+            // Merge: take the uploaded claudeAiOauth, keep everything else
+            using var ms = new System.IO.MemoryStream();
+            using (var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true }))
             {
-                return Ok(new AuthLoginResponse(false, null, null, $"No URL found in output: {output}"));
+                writer.WriteStartObject();
+
+                // Write the uploaded OAuth section
+                if (body.TryGetProperty("claudeAiOauth", out var uploadedOauth))
+                {
+                    writer.WritePropertyName("claudeAiOauth");
+                    uploadedOauth.WriteTo(writer);
+                }
+                else
+                {
+                    // Assume the entire body IS the oauth object
+                    writer.WritePropertyName("claudeAiOauth");
+                    body.WriteTo(writer);
+                }
+
+                // Preserve other keys from existing file
+                if (existingRoot.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var prop in existingRoot.EnumerateObject())
+                    {
+                        if (prop.Name == "claudeAiOauth") continue;
+                        writer.WritePropertyName(prop.Name);
+                        prop.Value.WriteTo(writer);
+                    }
+                }
+
+                writer.WriteEndObject();
             }
 
-            return Ok(new AuthLoginResponse(true, url, containerId, null));
+            var newJson = System.Text.Encoding.UTF8.GetString(ms.ToArray());
+            await System.IO.File.WriteAllTextAsync(credsPath, newJson, ct);
+
+            // Set restrictive permissions (best-effort on Linux)
+            try
+            {
+                if (!OperatingSystem.IsWindows())
+                    System.IO.File.SetUnixFileMode(credsPath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            }
+            catch { /* non-fatal */ }
+
+            log.LogInformation("Credentials updated via login upload");
+
+            var (_, expired, expiresAt) = ReadTokenStatus();
+            return Ok(new AuthLoginResponse(true, expiresAt, expired ? "Token uploaded but appears expired" : null));
         }
         catch (Exception ex)
         {
-            log.LogError(ex, "Auth login failed");
-            return Ok(new AuthLoginResponse(false, null, null, ex.Message));
+            log.LogError(ex, "Auth login/upload failed");
+            return Ok(new AuthLoginResponse(false, null, ex.Message));
         }
     }
 
-    /// <summary>
-    /// GET /api/auth/login/callback-status — checks if the login container finished (token was refreshed)
-    /// </summary>
-    [HttpGet("login/callback-status")]
-    public IActionResult CallbackStatus()
+    private (bool Authenticated, bool Expired, string? ExpiresAtIso) ReadTokenStatus()
     {
         var credsPath = Path.Combine(_opts.ClaudeCreds, ".credentials.json");
-
-        if (!System.IO.File.Exists(credsPath))
-        {
-            return Ok(new AuthLoginCallbackResponse(false, false, null));
-        }
+        if (!System.IO.File.Exists(credsPath)) return (false, true, null);
 
         try
         {
@@ -188,31 +148,23 @@ public class AuthController(
             using var doc = JsonDocument.Parse(json);
 
             if (!doc.RootElement.TryGetProperty("claudeAiOauth", out var oauth))
-            {
-                return Ok(new AuthLoginCallbackResponse(false, false, null));
-            }
+                return (false, true, null);
 
             var hasToken = oauth.TryGetProperty("accessToken", out var tokenProp)
                            && !string.IsNullOrEmpty(tokenProp.GetString());
 
-            if (!hasToken)
-            {
-                return Ok(new AuthLoginCallbackResponse(false, false, null));
-            }
-
             if (oauth.TryGetProperty("expiresAt", out var expProp))
             {
                 var expiresAt = DateTimeOffset.FromUnixTimeMilliseconds(expProp.GetInt64());
-                var expired = expiresAt < DateTimeOffset.UtcNow;
-                return Ok(new AuthLoginCallbackResponse(true, !expired, expiresAt.ToString("o")));
+                return (hasToken, expiresAt < DateTimeOffset.UtcNow, expiresAt.ToString("o"));
             }
 
-            return Ok(new AuthLoginCallbackResponse(true, true, null));
+            return (hasToken, true, null);
         }
         catch (Exception ex)
         {
-            log.LogWarning("Failed to check callback status: {Error}", ex.Message);
-            return Ok(new AuthLoginCallbackResponse(false, false, null));
+            log.LogWarning("Failed to read credentials: {Error}", ex.Message);
+            return (false, true, null);
         }
     }
 }
