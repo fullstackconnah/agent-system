@@ -74,23 +74,26 @@ public class AuthController(
     }
 
     /// <summary>
-    /// POST /api/auth/refresh — spawns a container to run 'claude auth status' which triggers token refresh
+    /// POST /api/auth/refresh — spawns a container running a minimal prompt to trigger OAuth token refresh
     /// </summary>
     [HttpPost("refresh")]
     public async Task<IActionResult> Refresh(CancellationToken ct)
     {
         try
         {
+            // 'claude auth status' does NOT trigger a refresh. A real API call does.
+            // Run a minimal prompt that forces Claude to authenticate, triggering auto-refresh.
             var (_, output) = await docker.RunAuthCommandAsync(
-                "claude auth status",
-                TimeSpan.FromSeconds(30),
+                "claude -p 'respond with OK' --output-format json --max-turns 1",
+                TimeSpan.FromSeconds(60),
                 ct);
 
-            log.LogInformation("Auth refresh output: {Output}", output);
+            log.LogInformation("Auth refresh output: {Output}", output.Length > 500 ? output[..500] : output);
 
             // Re-read the credentials to check the new expiry
             var credsPath = Path.Combine(_opts.ClaudeCreds, ".credentials.json");
             string? newExpiresAt = null;
+            var stillExpired = true;
 
             if (System.IO.File.Exists(credsPath))
             {
@@ -101,10 +104,19 @@ public class AuthController(
                     if (doc.RootElement.TryGetProperty("claudeAiOauth", out var oauth)
                         && oauth.TryGetProperty("expiresAt", out var expProp))
                     {
-                        newExpiresAt = DateTimeOffset.FromUnixTimeMilliseconds(expProp.GetInt64()).ToString("o");
+                        var expiresAt = DateTimeOffset.FromUnixTimeMilliseconds(expProp.GetInt64());
+                        newExpiresAt = expiresAt.ToString("o");
+                        stillExpired = expiresAt < DateTimeOffset.UtcNow;
                     }
                 }
                 catch { /* best-effort */ }
+            }
+
+            if (stillExpired)
+            {
+                // Token didn't refresh — refresh token may also be expired
+                return Ok(new AuthRefreshResponse(false, newExpiresAt,
+                    "Token could not be refreshed. The refresh token may have expired — use Login instead."));
             }
 
             return Ok(new AuthRefreshResponse(true, newExpiresAt, null));
