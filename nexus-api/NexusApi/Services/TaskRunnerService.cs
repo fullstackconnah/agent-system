@@ -78,6 +78,8 @@ public class TaskRunnerService(
 
     private static string BuildPrompt(string title, string body, string memory, string conventions, string taskType)
     {
+        var slug = GenerateBranchSlug(title);
+
         var baseContext = $"""
             ## Project Conventions
             {(string.IsNullOrEmpty(conventions) ? "No conventions loaded." : conventions)}
@@ -86,10 +88,42 @@ public class TaskRunnerService(
             {(string.IsNullOrEmpty(memory) ? "No prior memory for this project." : memory)}
             """;
 
+        var gitWorkflow = $"""
+
+            ## Git Workflow — MANDATORY
+            You MUST follow this workflow for all code changes:
+
+            1. **Branch**: Create a feature branch from the current branch:
+               ```
+               git checkout -b {slug}
+               ```
+            2. **Implement**: Make your changes, committing logically as you go.
+               Use conventional commit messages (feat:, fix:, chore:, refactor:, test:, docs:).
+            3. **Push**: Push the branch to origin:
+               ```
+               git push -u origin {slug}
+               ```
+            4. **Create PR**: Open a pull request using the gh CLI:
+               ```
+               gh pr create --title "<concise title>" --body "<description of changes>"
+               ```
+               Include a summary of what changed and why in the PR body.
+            5. **Merge**: After creating the PR, merge it:
+               ```
+               gh pr merge --squash --delete-branch
+               ```
+
+            IMPORTANT:
+            - NEVER commit directly to main or the default branch.
+            - If the repo has CI checks, wait for them before merging: `gh pr checks --watch`
+            - If merge fails due to checks, leave the PR open for human review and note this in your output.
+            """;
+
         if (taskType == "subtask")
         {
             return $"""
                 {baseContext}
+                {gitWorkflow}
 
                 ## Your Task
                 ### {title}
@@ -101,6 +135,7 @@ public class TaskRunnerService(
                 1. Use the Task tool to delegate work to specialist subagents where appropriate
                 2. If a subagent fails, analyse the failure output and retry with a modified approach
                 3. Complete the task fully before reporting back
+                4. Follow the Git Workflow above — all changes go through a PR
 
                 When finished, output your result followed by this exact section:
 
@@ -117,6 +152,7 @@ public class TaskRunnerService(
         // standalone
         return $"""
             {baseContext}
+            {gitWorkflow}
 
             ## Your Task
             ### {title}
@@ -124,8 +160,24 @@ public class TaskRunnerService(
             {body}
 
             ---
-            When finished, briefly summarise what you did and any issues encountered.
+            Follow the Git Workflow above — all changes go through a PR.
+            When finished, briefly summarise what you did, the PR URL, and any issues encountered.
             """.Trim();
+    }
+
+    private static string GenerateBranchSlug(string title)
+    {
+        var slug = title.ToLowerInvariant()
+            .Replace(' ', '-')
+            .Replace('/', '-')
+            .Replace('\\', '-');
+        // Remove non-alphanumeric chars except hyphens
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\-]", "");
+        // Collapse multiple hyphens and trim
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-{2,}", "-").Trim('-');
+        // Truncate to reasonable length
+        if (slug.Length > 50) slug = slug[..50].TrimEnd('-');
+        return $"agent/{slug}";
     }
 
     private static string? ExtractObservations(string output)

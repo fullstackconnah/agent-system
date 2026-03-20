@@ -26,6 +26,8 @@ public class DockerService(IOptions<AgentOptions> opts, ILogger<DockerService> l
         var env = new List<string>();
         if (!string.IsNullOrEmpty(_opts.AnthropicApiKey))
             env.Add($"ANTHROPIC_API_KEY={_opts.AnthropicApiKey}");
+        if (!string.IsNullOrEmpty(_opts.GithubToken))
+            env.Add($"GITHUB_TOKEN={_opts.GithubToken}");
 
         // Always mount claude config read-only so installed plugins are available
         binds.Add($"{_opts.HostClaudeCreds}:/home/agent/.claude:ro");
